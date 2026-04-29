@@ -4,15 +4,22 @@ keywords = ["math"]
 defaultTargets = ["LinearAlgebraDoneRightLean"]
 
 [leanOptions]
-pp.unicode.fun = true # pretty-prints `fun a ↦ b`
+pp.unicode.fun = true
 relaxedAutoImplicit = false
+weak.linter.style.longLine = true
+linter.unusedVariables = true
 weak.linter.mathlibStandardSet = true
 maxSynthPendingDepth = 3
 
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
-rev = "v4.27.0"
+rev = "v4.29.0"
+
+[[require]]
+name = "companion-helper"
+git = "https://github.com/rkirov/companion-helper"
+rev = "main"
 
 [[lean_lib]]
 name = "LinearAlgebraDoneRightLean"

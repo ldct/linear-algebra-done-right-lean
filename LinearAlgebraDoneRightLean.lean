@@ -1,2 +1,3 @@
-import LinearAlgebraDoneRightLean.Basic
-import LinearAlgebraDoneRightLean.Chapter1_VectorSpaces
+import LinearAlgebraDoneRightLean.Section_1A
+import LinearAlgebraDoneRightLean.Section_1B
+import LinearAlgebraDoneRightLean.Section_1C
