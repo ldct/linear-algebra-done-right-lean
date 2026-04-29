@@ -18,12 +18,12 @@ rev = "main"
 [[require]]
 name = "verso"
 git = "https://github.com/leanprover/verso.git"
-rev = "latest"
+rev = "v4.30.0-rc2"
 
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
-rev = "master"
+rev = "v4.30.0-rc2"
 
 [[lean_lib]]
 name = "LinearAlgebraDoneRightLean"
