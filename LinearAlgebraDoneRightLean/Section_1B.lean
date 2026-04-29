@@ -12,7 +12,7 @@ import CompanionHelper
 
 namespace LADR.Section_1B
 
-/-! ### 1.19–1.20 Definition: vector space
+/-! 1.19–1.20 Definition: vector space
 
 Mathlib's `Module F V` (over `[AddCommGroup V]`) is exactly Axler's "vector space
 over `F`". The eight axioms are derivable from the typeclass methods. -/
@@ -28,20 +28,20 @@ example (a : F) (u v : V) : a • (u + v) = a • u + a • v := smul_add a u v
 example (a b : F) (v : V) : (a + b) • v = a • v + b • v := add_smul a b v
 example (a b : F) (v : V) : (a * b) • v = a • (b • v) := mul_smul a b v
 
-/-! ### 1.21 Example: Fⁿ is a vector space over F -/
+/-! 1.21 Example: Fⁿ is a vector space over F -/
 
 example {n : ℕ} : Module ℝ (Fin n → ℝ) := inferInstance
 example {n : ℕ} : Module ℂ (Fin n → ℂ) := inferInstance
 
-/-! ### 1.22 Example: F^∞ -/
+/-! 1.22 Example: F^∞ -/
 
 example : Module ℝ (ℕ → ℝ) := inferInstance
 
-/-! ### 1.23 Example: F^S -/
+/-! 1.23 Example: F^S -/
 
 example (S : Type*) : Module ℝ (S → ℝ) := inferInstance
 
-/-! ### 1.25 Unique additive identity
+/-! 1.25 Unique additive identity
 
 If `z + v = v` for every `v ∈ V`, then `z = 0`. The textbook proof: take `v = 0`. -/
 
@@ -49,7 +49,7 @@ theorem unique_zero (z : V) (h : ∀ v, v + z = v) : z = 0 := by
   have h0 : (0 : V) + z = 0 := h 0
   rwa [zero_add] at h0
 
-/-! ### 1.26 Unique additive inverse
+/-! 1.26 Unique additive inverse
 
 If `v + w = 0`, then `w = -v`. -/
 
@@ -58,19 +58,19 @@ theorem unique_neg (v w : V) (h : v + w = 0) : w = -v := by
   rw [← add_assoc, neg_add_cancel, zero_add, add_zero] at this
   exact this
 
-/-! ### 1.29 The zero scalar annihilates every vector -/
+/-! 1.29 The zero scalar annihilates every vector -/
 
 example (v : V) : (0 : F) • v = 0 := zero_smul F v
 
-/-! ### 1.30 Any scalar applied to the zero vector is zero -/
+/-! 1.30 Any scalar applied to the zero vector is zero -/
 
 example (a : F) : a • (0 : V) = 0 := smul_zero a
 
-/-! ### 1.31 `(-1) • v = -v` -/
+/-! 1.31 `(-1) • v = -v` -/
 
 example (v : V) : (-1 : F) • v = -v := neg_one_smul F v
 
-/-! ## Exercises -/
+/-! # Exercises -/
 
 /-- 1B.1 Show that `-(-v) = v` for every `v ∈ V`. -/
 @[avoiding neg_neg]

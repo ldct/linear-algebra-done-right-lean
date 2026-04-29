@@ -135,7 +135,7 @@ example (x : Fin n → F) : -x = fun i => -(x i) := rfl
 
 example (a : F) (x : Fin n → F) : a • x = fun i => a * x i := rfl
 
-/-! ## Exercises
+/-! # Exercises
 
 Exercises 1A.1–1A.6 are stated inline in Properties 1.3 above. -/
 

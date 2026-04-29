@@ -16,7 +16,7 @@ import CompanionHelper
 
 namespace LADR.Section_1C
 
-/-! ### 1.33–1.34 Definition: subspace
+/-! 1.33–1.34 Definition: subspace
 
 A subset `U ⊆ V` is a subspace iff it contains `0`, is closed under addition,
 and is closed under scalar multiplication. Mathlib calls this a `Submodule F V`. -/
@@ -32,7 +32,7 @@ recall Submodule.smul_mem {R : Type u} {M : Type v} [Semiring R] [AddCommMonoid 
 
 variable {F : Type*} [Field F] {V : Type*} [AddCommGroup V] [Module F V]
 
-/-! ### 1.35 Examples of subspaces -/
+/-! 1.35 Examples of subspaces -/
 
 example : Submodule F V := ⊥
 example : Submodule F V := ⊤
@@ -57,7 +57,7 @@ example : Submodule ℝ (Fin 3 → ℝ) where
 def lineThrough (v : Fin 2 → ℝ) : Submodule ℝ (Fin 2 → ℝ) :=
   Submodule.span ℝ {v}
 
-/-! ### 1.36–1.37 Sum of subspaces
+/-! 1.36–1.37 Sum of subspaces
 
 `U + W = {u + w | u ∈ U, w ∈ W}` is the smallest subspace containing both.
 Mathlib uses `⊔` (the lattice supremum). -/
@@ -68,7 +68,7 @@ example (U W : Submodule F V) (u : V) (hu : u ∈ U) :
     u ∈ U ⊔ W := by
   exact Submodule.mem_sup_left hu
 
-/-! ### 1.41 Direct sum criterion
+/-! 1.41 Direct sum criterion
 
 `U + W` is direct iff `U ∩ W = {0}`. Mathlib expresses this as `U ⊓ W = ⊥`. -/
 
@@ -77,7 +77,7 @@ theorem disjoint_iff_inter_trivial (U W : Submodule F V) :
   rw [Submodule.eq_bot_iff]
   refine ⟨fun h v hu hw => h v ⟨hu, hw⟩, fun h v ⟨hu, hw⟩ => h v hu hw⟩
 
-/-! ## Exercises -/
+/-! # Exercises -/
 
 /-- 1C.1 The set `{(x₁, x₂, x₃, x₄) ∈ ℝ⁴ | x₃ = 5 x₄ + b}` is a subspace iff
 `b = 0`. -/

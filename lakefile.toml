@@ -6,20 +6,24 @@ defaultTargets = ["LinearAlgebraDoneRightLean"]
 [leanOptions]
 pp.unicode.fun = true
 relaxedAutoImplicit = false
-weak.linter.style.longLine = true
 linter.unusedVariables = true
-weak.linter.mathlibStandardSet = true
 maxSynthPendingDepth = 3
-
-[[require]]
-name = "mathlib"
-scope = "leanprover-community"
-rev = "v4.29.0"
+doc.verso = true
 
 [[require]]
 name = "companion-helper"
 git = "https://github.com/rkirov/companion-helper"
 rev = "main"
+
+[[require]]
+name = "verso"
+git = "https://github.com/leanprover/verso.git"
+rev = "latest"
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+rev = "master"
 
 [[lean_lib]]
 name = "LinearAlgebraDoneRightLean"

@@ -1,0 +1,12 @@
+docstrings_as_text = true
+
+order = [
+  "LinearAlgebraDoneRightLean",
+  "LinearAlgebraDoneRightLean.Section_1A",
+  "LinearAlgebraDoneRightLean.Section_1B",
+  "LinearAlgebraDoneRightLean.Section_1C",
+]
+
+[metadata]
+title = "Linear Algebra Done Right — Lean Companion"
+description = "A Lean 4 companion to Sheldon Axler's Linear Algebra Done Right (4th edition)."
