@@ -2,6 +2,7 @@ import Mathlib.Algebra.Module.Basic
 import Mathlib.Algebra.Module.Pi
 import Mathlib.Algebra.Module.PUnit
 import Mathlib.Data.Complex.Basic
+import Mathlib.Data.EReal.Basic
 import Mathlib.Data.Real.Basic
 import Mathlib.Tactic.Linter.Style
 import Mathlib.Tactic.Recall
@@ -42,7 +43,7 @@ structure LADRVectorSpace (F : Type*) [Field F] (V : Type*) where
 /-! Instead of using the definition above, we will use mathlib's definition.
 
 As usual, mathlib has a more general definition, but the special case of
-{lit}`Module F V` (over {lit}`[AddCommGroup V]`) where {lit}`[Field F]` is exactly
+{lit}`Module F V{lit}` (over {lit}`[AddCommGroup V]{lit}`) where {lit}`[Field F]` is exactly
 equivalent to Axler's "vector space over {lit}`F`". -/
 
 /-! You will learn what these mean in an abstract algebra course, but
@@ -70,14 +71,14 @@ Elements {lit}`v : V` are called vectors or points. -/
 
 /-! 1.22 Definition: real vector space, complex vector space
 
-A vector space over {lit}`ℝ` is a real vector space; over {lit}`ℂ`, a complex vector space.
+A vector space over {lit}`ℝ{lit}` is a real vector space; over {lit}`ℂ`, a complex vector space.
 In Lean, whenever we see {lit}`{V : Type*} [AddCommGroup V] [Module ℝ V]`, that is a
 real vector space; with {lit}`[Module ℂ V]`, a complex vector space. -/
 
 
 /-! 1.23 Example: F∞
 
-{lit}`F∞` is the set of all sequences of elements of {lit}`F`; in Lean, {lit}`ℕ → F`. -/
+{lit}`F∞{lit}` is the set of all sequences of elements of {lit}`F{lit}`; in Lean, {lit}`ℕ → F`. -/
 
 example : AddCommGroup (ℕ → F) := inferInstance
 example : Module F (ℕ → F) := inferInstance
@@ -93,7 +94,7 @@ example (v w : PUnit) : v = w := rfl
 
 /-! 1.24 Notation: F^S
 
-For a set {lit}`S`, {lit}`F^S` denotes the set of functions from {lit}`S` to {lit}`F`. In Lean we
+For a set {lit}`S{lit}`, {lit}`F^S{lit}` denotes the set of functions from {lit}`S{lit}` to {lit}`F`. In Lean we
 just write {lit}`S → F`. Addition and scalar multiplication are pointwise. -/
 
 example (S : Type*) (f g : S → F) (x : S) : (f + g) x = f x + g x := rfl
@@ -101,9 +102,9 @@ example (S : Type*) (c : F) (f : S → F) (x : S) : (c • f) x = c * f x := rfl
 
 /-! 1.25 Example: F^S is a vector space
 
-The additive identity of {lit}`F^S` is the function {lit}`0 : S → F` defined by
-{lit}`0 x = 0` for all {lit}`x ∈ S`. For {lit}`f : S → F`, the additive inverse {lit}`-f`
-is defined by {lit}`(-f) x = -(f x)` for all {lit}`x ∈ S`. -/
+The additive identity of {lit}`F^S{lit}` is the function {lit}`0 : S → F` defined by
+{lit}`0 x = 0{lit}` for all {lit}`x ∈ S{lit}`. For {lit}`f : S → F{lit}`, the additive inverse {lit}`-f`
+is defined by {lit}`(-f) x = -(f x){lit}` for all {lit}`x ∈ S`. -/
 
 example (S : Type*) : AddCommGroup (S → F) := inferInstance
 example (S : Type*) : Module F (S → F) := inferInstance
@@ -111,18 +112,14 @@ example (S : Type*) : Module F (S → F) := inferInstance
 example (S : Type*) (x : S) : (0 : S → F) x = 0 := rfl
 example (S : Type*) (f : S → F) (x : S) : (-f) x = -(f x) := rfl
 
-/-! 1.26 Unique additive identity
-
-If {lit}`z` acts as an additive identity (i.e. {lit}`v + z = v` for every {lit}`v`), then {lit}`z = 0`. -/
+/-! 1.26 Unique additive identity -/
 
 theorem unique_zero (z : V) (h : ∀ v, v + z = v) : z = 0 :=
   calc z = z + 0     := (add_zero z).symm
     _    = 0 + z     := add_comm z 0
     _    = 0         := h 0
 
-/-! 1.27 Unique additive inverse
-
-If {lit}`v + w = 0`, then {lit}`w = -v`. -/
+/-! 1.27 Unique additive inverse -/
 
 theorem unique_neg (v w : V) (h : v + w = 0) : w = -v :=
   calc w = w + 0                 := (add_zero w).symm
@@ -132,61 +129,151 @@ theorem unique_neg (v w : V) (h : v + w = 0) : w = -v :=
     _    = 0 + (-v)              := by rw [h]
     _    = -v                    := zero_add (-v)
 
-/-! 1.28 Notation: −v, w − v
-
-{lit}`-v` is the additive inverse of {lit}`v`; {lit}`w - v` is shorthand for {lit}`w + (-v)`. -/
+/-! 1.28 Notation: −v, w − v -/
 
 example (v : V) : v + (-v) = 0 := add_neg_cancel v
 example (v w : V) : w - v = w + (-v) := sub_eq_add_neg w v
 
 /-! 1.29 Notation: V
 
-For the rest of this section, {lit}`V` denotes a vector space over {lit}`F` (declared
+For the rest of this section, {lit}`V{lit}` denotes a vector space over {lit}`F` (declared
 once at the top via {lit}`variable {V : Type*} [AddCommGroup V] [Module F V]`). -/
 
-/-! 1.30 The number 0 times a vector
+/-! 1.30 The number 0 times a vector -/
 
-For every {lit}`v ∈ V`, {lit}`0 • v = 0` (the scalar {lit}`0 ∈ F` times any vector is the
-zero vector). -/
-
-example (v : V) : (0 : F) • v = 0 := by
+@[avoiding zero_smul]
+theorem zero_smul' (v : V) : (0 : F) • v = 0 := by
   have h : (0 : F) • v = (0 : F) • v + (0 : F) • v :=
     calc (0 : F) • v = (0 + 0 : F) • v          := by rw [add_zero]
       _              = (0 : F) • v + (0 : F) • v := add_smul 0 0 v
-  -- Add `-(0 • v)` to both sides of `h`, then simplify.
-  have h2 := congrArg (· + -((0 : F) • v)) h
+  -- Add {lit}`-(0 • v)` to both sides of {lit}`h`, then simplify.
+  have h2 : (0 : F) • v + -((0 : F) • v) = ((0 : F) • v + (0 : F) • v) + -((0 : F) • v) :=
+    congrArg (· + -((0 : F) • v)) h
   rw [add_neg_cancel, add_assoc, add_neg_cancel, add_zero] at h2
   exact h2.symm
 
-/-! 1.31 A number times the vector 0
+/-! 1.31 A number times the vector 0 -/
 
-For every {lit}`a ∈ F`, {lit}`a • 0 = 0` (any scalar times the zero vector is the
-zero vector). -/
+@[avoiding smul_zero]
+theorem smul_zero' (a : F) : a • (0 : V) = 0 := by
+  have h : a • (0 : V) = a • 0 + a • 0 :=
+    calc a • (0 : V) = a • (0 + 0)         := by rw [add_zero]
+      _              = a • 0 + a • 0       := smul_add a 0 0
+  -- Add {lit}`-(a • 0)` to both sides of {lit}`h`, then simplify.
+  have h2 : a • (0 : V) + -(a • (0 : V)) = (a • 0 + a • 0) + -(a • 0) :=
+    congrArg (· + -(a • (0 : V))) h
+  rw [add_neg_cancel, add_assoc, add_neg_cancel, add_zero] at h2
+  exact h2.symm
 
-example (a : F) : a • (0 : V) = 0 := smul_zero a
+/-! 1.32 The number −1 times a vector -/
 
-/-! 1.32 The number −1 times a vector
-
-{lit}`(-1) • v = -v`, i.e. multiplying by the scalar {lit}`-1` produces the additive
-inverse. -/
-
-example (v : V) : (-1 : F) • v = -v := neg_one_smul F v
+@[avoiding neg_one_smul]
+theorem neg_one_smul' (v : V) : (-1 : F) • v = -v :=
+  unique_neg v ((-1 : F) • v) <|
+    calc v + (-1 : F) • v
+        = (1 : F) • v + (-1 : F) • v   := by rw [one_smul]
+      _ = ((1 : F) + (-1 : F)) • v      := (add_smul 1 (-1) v).symm
+      _ = (0 : F) • v                   := by rw [show (1 : F) + -1 = 0 from by ring]
+      _ = 0                             := zero_smul' v
 
 /-! # Exercises -/
 
-/-- 1B.1 Show that {lit}`-(-v) = v` for every {lit}`v ∈ V`. -/
+/-- 1B.1 -/
 @[avoiding neg_neg]
 theorem exercise_1B_1 (v : V) : -(-v) = v := by
   sorry
 
-/-- 1B.2 Suppose {lit}`a ∈ F`, {lit}`v ∈ V`, and {lit}`a • v = 0`. Prove {lit}`a = 0` or {lit}`v = 0`. -/
+/-- 1B.2 -/
 @[avoiding smul_eq_zero, smul_eq_zero_iff_eq, smul_eq_zero_iff_eq']
 theorem exercise_1B_2 (a : F) (v : V) (h : a • v = 0) :
     a = 0 ∨ v = 0 := by
   sorry
 
-/-- 1B.3 For all {lit}`v, w ∈ V`, there is a unique {lit}`x ∈ V` with {lit}`v + 3 • x = w`. -/
+/-- 1B.3 -/
 theorem exercise_1B_3 (v w : V) : ∃! x : V, v + (3 : F) • x = w := by
   sorry
+
+/-- 1B.4: We show the failure in the {lit}`AddCommGroup` subcomponent —
+the failing axiom lives in the additive structure. -/
+theorem exercise_1B_4 : IsEmpty (AddCommGroup Empty) := by
+  sorry
+
+/-- The textbook's *alternative* module-side axioms (1B.5): the four standard
+smul axioms with {lit}`add_neg_cancel` replaced by {lit}`0 • v = 0`. The
+additive part lives in the surrounding {lit}`AddCommMonoid V`. -/
+structure AxlerAltModule (F V : Type*) [Field F] [AddCommMonoid V] where
+  smul : F → V → V
+  one_smul : ∀ v : V, smul 1 v = v
+  mul_smul : ∀ (a b : F) (v : V), smul (a * b) v = smul a (smul b v)
+  smul_add : ∀ (a : F) (u v : V), smul a (u + v) = smul a u + smul a v
+  add_smul : ∀ (a b : F) (v : V), smul (a + b) v = smul a v + smul b v
+  zero_smul : ∀ v : V, smul 0 v = 0
+
+/-- 1B.5, ⇐ direction (original ⇒ alt): from {lit}`add_neg_cancel` and the four
+standard smul axioms, derive {lit}`0 • v = 0`. This is theorem 1.30 above. -/
+example (v : V) : (0 : F) • v = 0 := zero_smul' v
+
+/-- 1B.5, ⇒ direction (alt ⇒ original): given the alt axioms over an
+{lit}`AddCommMonoid`, the dropped axiom — additive inverses — must hold. -/
+theorem exercise_1B_5 (V : Type*) [AddCommMonoid V] (m : AxlerAltModule F V) :
+    ∀ v : V, ∃ w : V, v + w = 0 := by
+  sorry
+
+/-- Axler's textbook addition on {lit}`ℝ ∪ {∞, -∞} = EReal` (where {lit}`⊤ = ∞`
+and {lit}`⊥ = -∞`). Mathlib's {lit}`EReal.add` sets {lit}`⊤ + ⊥ = ⊥`, but Axler's
+convention is {lit}`∞ + (-∞) = 0`; this is the only edge case where the two
+disagree. -/
+noncomputable def addAxler (x y : EReal) : EReal :=
+  if (x = ⊤ ∧ y = ⊥) ∨ (x = ⊥ ∧ y = ⊤) then 0 else x + y
+
+/-- 1B.6: with the textbook's operations, {lit}`EReal` is not a vector space
+over {lit}`ℝ`.
+
+Why {lit}`LADRVectorSpace` here? The exercise *prescribes* a specific addition
+({lit}`addAxler`) and asks whether the axioms hold. With mathlib's typeclasses,
+the addition is fixed by the {lit}`Add EReal` instance — there's no clean way to
+say "consider this alternative addition and check the axioms". The bundled
+structure exposes {lit}`add` as a data field, so the constraint
+{lit}`vs.add = addAxler` is one line.
+
+TODO: see if we can replace LADRVectorSpace with mathlib here.
+-/
+theorem exercise_1B_6 :
+    IsEmpty { vs : LADRVectorSpace ℝ EReal // vs.add = addAxler } := by
+  sorry
+
+/-- 1B.7: {lit}`V^S = (S → V)` is a vector space with pointwise operations. We
+pick the {lit}`Module F` subcomponent — the {lit}`AddCommGroup` part comes for free
+from Pi instances; the reader fills in the scalar-action axioms. -/
+@[implicit_reducible]
+def exercise_1B_7 (S : Type*) [Nonempty S] : Module F (S → V) where
+  smul a f := fun s => a • f s
+  one_smul := by sorry
+  mul_smul := by sorry
+  smul_zero := by sorry
+  zero_smul := by sorry
+  smul_add := by sorry
+  add_smul := by sorry
+
+/-- The complexification {lit}`V_C = V × V` of a real vector space {lit}`V`. An
+element {lit}`(u, v)` is written {lit}`u + i·v` in the textbook. The underlying
+additive structure is just the product (mathlib provides it via Pi); the
+content of 1B.8 is the *complex* scalar multiplication. -/
+abbrev Complexification (W : Type*) := W × W
+
+/-- 1B.8: with the textbook's complex scalar multiplication, the complexification
+of a real vector space is a complex vector space. We pick the {lit}`Module ℂ`
+subcomponent — the {lit}`AddCommGroup` part comes for free from the product
+{lit}`W × W`; the new content is the complex scalar action. -/
+@[implicit_reducible]
+def exercise_1B_8 (W : Type*) [AddCommGroup W] [Module ℝ W] :
+    Module ℂ (Complexification W) where
+  smul c x := (c.re • x.1 - c.im • x.2, c.re • x.2 + c.im • x.1)
+  one_smul := by sorry
+  mul_smul := by sorry
+  smul_zero := by sorry
+  zero_smul := by sorry
+  smul_add := by sorry
+  add_smul := by sorry
 
 end LADR.Section_1B
