@@ -35,7 +35,7 @@ recall Complex.add_im (z w : ℂ) : (z + w).im = z.im + w.im
 recall Complex.mul_re (z w : ℂ) : (z * w).re = z.re * w.re - z.im * w.im
 recall Complex.mul_im (z w : ℂ) : (z * w).im = z.re * w.im + z.im * w.re
 
-/-! 1.2 Example: complex multiplication -/
+/-! 1.2 Example: complex arithmetic -/
 
 example : (2 + 3 * I) * (4 + 5 * I) = -7 + 22 * I := by
   apply Complex.ext <;> simp <;> ring
@@ -44,6 +44,8 @@ example : (2 + 3 * I) * (4 + 5 * I) = -7 + 22 * I := by
 
 @[avoiding add_comm]
 theorem exercise_1A_1 (α β : ℂ) : α + β = β + α := by sorry
+
+/-! 1.4 Example: commutativity of complex multiplication -/
 
 @[avoiding mul_comm]
 theorem mul_comm_example (α β : ℂ) : α * β = β * α := by
@@ -72,7 +74,7 @@ theorem exercise_1A_5 (α : ℂ) : ∃! β : ℂ, α + β = 0 := by sorry
     eq_inv_of_mul_eq_one_left, eq_inv_of_mul_eq_one_right]
 theorem exercise_1A_6 (α : ℂ) (hα : α ≠ 0) : ∃! β : ℂ, α * β = 1 := by sorry
 
-/-! 1.5 Subtraction and division in ℂ -/
+/-! 1.5 Definition: −α, subtraction, 1/α, division -/
 
 example (α β : ℂ) : α - β = α + (-β) := sub_eq_add_neg α β
 example (α : ℂ) : α⁻¹ = 1 / α := (one_div α).symm
@@ -85,10 +87,10 @@ variable {F : Type*} [Field F] {n : ℕ}
 example (α : F) (m n : ℕ) : (α ^ m) ^ n = α ^ (m * n) := (pow_mul α m n).symm
 example (α β : F) (m : ℕ) : (α * β) ^ m = α ^ m * β ^ m := mul_pow α β m
 
-/-! 1.7 Example: lists -/
+/-! 1.7 Example: ℝ² and ℝ³ -/
 
-example : Fin 3 → ℝ := ![4, -3, 1]
-example : Fin 2 → ℂ := ![1, 2 + 3 * I]
+example : Fin 2 → ℝ := ![1, 2]
+example : Fin 3 → ℝ := ![1, 2, 3]
 
 /-! 1.8 Definition: list, length
 
@@ -110,9 +112,12 @@ example : ({4, 4} : Set ℕ) = ({4} : Set ℕ) := by ext; simp
 
 /-! 1.11 Definition: Fⁿ, coordinate -/
 
-example : Fin 4 → ℂ := ![1 + 2 * I, 3, -I, 5 - 6 * I]
 example : (![10, 20, 30] : Fin 3 → ℕ) 0 = 10 := rfl
 example : (![10, 20, 30] : Fin 3 → ℕ) 2 = 30 := rfl
+
+/-! 1.12 Example: ℂ⁴ -/
+
+example : Fin 4 → ℂ := ![1 + 2 * I, 3, -I, 5 - 6 * I]
 
 /-! 1.13 Definition: addition in Fⁿ -/
 
@@ -127,9 +132,12 @@ theorem add_comm_pi (x y : Fin n → F) : x + y = y + x := by
 /-! 1.15 Notation: 0 -/
 
 example : (0 : Fin n → F) = fun _ => 0 := rfl
+
+/-! 1.16 Example: context determines which 0 is intended -/
+
 example (x : Fin n → F) : x + 0 = x := add_zero x
 
-/-! 1.17 Definition: additive inverse in Fⁿ -/
+/-! 1.17 Definition: additive inverse in Fⁿ, −x -/
 
 example (x : Fin n → F) : -x = fun i => -(x i) := rfl
 
