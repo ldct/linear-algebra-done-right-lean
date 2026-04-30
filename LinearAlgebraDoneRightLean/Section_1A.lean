@@ -85,15 +85,17 @@ variable {F : Type*} [Field F] {n : ℕ}
 example (α : F) (m n : ℕ) : (α ^ m) ^ n = α ^ (m * n) := (pow_mul α m n).symm
 example (α β : F) (m : ℕ) : (α * β) ^ m = α ^ m * β ^ m := mul_pow α β m
 
-/-! 1.7 Example: vectors -/
+/-! 1.7 Example: lists -/
 
 example : Fin 3 → ℝ := ![4, -3, 1]
 example : Fin 2 → ℂ := ![1, 2 + 3 * I]
 
 /-! 1.8 Definition: list, length
 
-In Lean a list of length `n` over `α` is `Fin n → α`; the length is encoded in
-the type. -/
+Axler's *list of length `n` over `α`* is rendered here as `Fin n → α`, with
+the length encoded in the type. **Beware:** Lean has a separate built-in type
+`List α` (a variable-length linked list, written with the `[…]` notation
+instead of `![…]`) — it is *not* what Axler calls a list. -/
 
 example : Fin 0 → ℝ := ![]
 
@@ -122,7 +124,7 @@ theorem add_comm_pi (x y : Fin n → F) : x + y = y + x := by
   funext i
   exact add_comm (x i) (y i)
 
-/-! 1.15 Notation: zero vector -/
+/-! 1.15 Notation: 0 -/
 
 example : (0 : Fin n → F) = fun _ => 0 := rfl
 example (x : Fin n → F) : x + 0 = x := add_zero x
