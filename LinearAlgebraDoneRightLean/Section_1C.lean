@@ -11,6 +11,7 @@ import Mathlib.Data.Real.Basic
 import Mathlib.LinearAlgebra.DFinsupp
 import Mathlib.LinearAlgebra.Span.Basic
 import Mathlib.LinearAlgebra.Span.Defs
+import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
 import Mathlib.Tactic.Linarith
 import Mathlib.Tactic.Linter.Style
 import Mathlib.Tactic.Recall
@@ -143,23 +144,21 @@ theorem sub_smul_zero (S : Set V) (h0 : (0 : V) ∈ S)
 
 example (U : Submodule F V) {u : V} (hu : u ∈ U) : -u ∈ U := U.neg_mem hu
 
-/-! 1.35 Example: subspaces
+/-! 1.35 Example: subspaces / Exercise 1C.2
 
-(a) The set {lit}`{(x₁, x₂, x₃, x₄) ∈ F⁴ : x₃ = 5 x₄ + b}` is a subspace of
-{lit}`F⁴` iff {lit}`b = 0` (the {lit}`b = 0` direction is shown here; both
-directions are exercise 1C.1 below). -/
+Verify that the sets in (a)–(e) are subspaces. We give the carrier, the
+{lit}`0`-membership proof, and the scalar-closure proof; the additive-closure
+{lit}`add_mem'` is left as {lit}`sorry` for the reader. -/
+
+/-! 1.35(a) The set {lit}`{(x₁, x₂, x₃, x₄) ∈ F⁴ : x₃ = 5 x₄ + b}` is a
+subspace of {lit}`F⁴` iff {lit}`b = 0` (the {lit}`b = 0` direction is shown
+here; both directions are exercise 1C.1 above). -/
 
 example : Submodule F (Fin 4 → F) where
   carrier := {v | v 2 = 5 * v 3}
   zero_mem' := by simp
-  add_mem' := by
-    intro u v hu hv
-    simp only [Set.mem_setOf_eq, Pi.add_apply] at *
-    rw [hu, hv]; ring
-  smul_mem' := by
-    intro a v hv
-    simp only [Set.mem_setOf_eq, Pi.smul_apply, smul_eq_mul] at *
-    rw [hv]; ring
+  add_mem' := by sorry
+  smul_mem' := by sorry
 
 /-! 1.35(b) Continuous real-valued functions on {lit}`[0, 1]` form a subspace
 of {lit}`ℝ^[0,1]`. (Axler uses {lit}`[0, 1]`; we work over all of {lit}`ℝ` —
@@ -168,8 +167,8 @@ the closure proofs are identical.) -/
 example : Submodule ℝ (ℝ → ℝ) where
   carrier := {f | Continuous f}
   zero_mem' := continuous_const
-  add_mem' hf hg := hf.add hg
-  smul_mem' a _ hf := hf.const_smul a
+  add_mem' hf hg := by sorry
+  smul_mem' a _ hf := by sorry
 
 /-! 1.35(c) Differentiable real-valued functions on {lit}`ℝ` form a subspace
 of {lit}`ℝ^ℝ`. -/
@@ -177,8 +176,8 @@ of {lit}`ℝ^ℝ`. -/
 example : Submodule ℝ (ℝ → ℝ) where
   carrier := {f | Differentiable ℝ f}
   zero_mem' := differentiable_const 0
-  add_mem' hf hg := hf.add hg
-  smul_mem' a _ hf := hf.const_smul a
+  add_mem' hf hg := by sorry
+  smul_mem' a _ hf := by sorry
 
 /-! 1.35(d) Differentiable real-valued functions on {lit}`(0, 3)` such that
 {lit}`f'(2) = 0` form a subspace. We work on all of {lit}`ℝ` and pin the
@@ -188,14 +187,8 @@ derivative being zero at a point. -/
 example : Submodule ℝ (ℝ → ℝ) where
   carrier := {f | Differentiable ℝ f ∧ deriv f 2 = 0}
   zero_mem' := ⟨differentiable_const 0, by simp⟩
-  add_mem' := by
-    rintro f g ⟨hfd, hf⟩ ⟨hgd, hg⟩
-    refine ⟨hfd.add hgd, ?_⟩
-    rw [deriv_add (hfd 2) (hgd 2), hf, hg, add_zero]
-  smul_mem' := by
-    rintro a f ⟨hfd, hf⟩
-    refine ⟨hfd.const_smul a, ?_⟩
-    rw [deriv_const_smul _ (hfd 2), hf, smul_zero]
+  add_mem' := by sorry
+  smul_mem' := by sorry
 
 /-! 1.35(e) Sequences of complex numbers with limit {lit}`0` form a subspace
 of {lit}`ℂ^∞`. In Lean, "sequence" is {lit}`ℕ → ℂ` and "has limit {lit}`0`" is
@@ -204,12 +197,8 @@ of {lit}`ℂ^∞`. In Lean, "sequence" is {lit}`ℕ → ℂ` and "has limit {lit
 example : Submodule ℂ (ℕ → ℂ) where
   carrier := {f | Filter.Tendsto f Filter.atTop (nhds 0)}
   zero_mem' := tendsto_const_nhds
-  add_mem' := by
-    intro f g hf hg
-    simpa using hf.add hg
-  smul_mem' := by
-    intro a f hf
-    simpa using hf.const_smul a
+  add_mem' := by sorry
+  smul_mem' := by sorry
 
 /-! Two distinguished subspaces every space has: the trivial subspace {lit}`{0}`
 ({name}`Bot.bot`) and the whole space {name}`Top.top`. -/
@@ -394,30 +383,135 @@ example (U W X : Submodule F V) (h₁ : U ≤ X) (h₂ : W ≤ X) : U ⊔ W ≤ 
 /-! 1.41 Definition: direct sum, ⊕
 
 The sum {lit}`V₁ + ⋯ + Vₘ` is a *direct sum* if each element has only one
-representation as {lit}`v₁ + ⋯ + vₘ` with each {lit}`vₖ ∈ Vₖ`.
+representation as {lit}`v₁ + ⋯ + vₘ` with each {lit}`vₖ ∈ Vₖ`. -/
 
-In mathlib, two submodules form a direct sum exactly when {name}`Disjoint`
-holds. By {name}`Submodule.disjoint_def`,
-{lit}`Disjoint U W ↔ ∀ x ∈ U, x ∈ W → x = 0`. -/
+def IsDirectSum {m : ℕ} (W : Fin m → Submodule F V) : Prop :=
+  ∀ (u v : (i : Fin m) → W i),
+    (∑ i, ((u i : V))) = (∑ i, ((v i : V))) → u = v
 
-recall Submodule.disjoint_def {R : Type*} {M : Type*} [Semiring R]
-    [AddCommMonoid M] [Module R M] {p p' : Submodule R M} :
-    Disjoint p p' ↔ ∀ x ∈ p, x ∈ p' → x = 0
+/-! 1.42 Example: a direct sum of two subspaces -/
 
-/-! Equivalent in any lattice with a bottom element: -/
+namespace Example_1_42
 
-example (U W : Submodule F V) : Disjoint U W ↔ U ⊓ W = ⊥ := disjoint_iff
+def U : Submodule F (Fin 3 → F) where
+  carrier := {v | v 2 = 0}
+  zero_mem' := rfl
+  add_mem' := by intro u v hu hv; show u 2 + v 2 = 0; rw [hu, hv, add_zero]
+  smul_mem' := by intro a v hv; show a • v 2 = 0; rw [hv, smul_zero]
 
-/-! 1.42 Example: a direct sum of two subspaces
+def W : Submodule F (Fin 3 → F) where
+  carrier := {v | v 0 = 0 ∧ v 1 = 0}
+  zero_mem' := ⟨rfl, rfl⟩
+  add_mem' := by
+    rintro u v ⟨h0, h1⟩ ⟨h0', h1'⟩
+    exact ⟨by simp [Pi.add_apply, h0, h0'], by simp [Pi.add_apply, h1, h1']⟩
+  smul_mem' := by
+    rintro a v ⟨h0, h1⟩
+    exact ⟨by simp [Pi.smul_apply, h0], by simp [Pi.smul_apply, h1]⟩
 
-With {lit}`U = {(x, y, 0)}` and {lit}`W = {(0, 0, z)}` in {lit}`F³`, we have
-{lit}`F³ = U ⊕ W`. The direct-sum statement is
-{lit}`Disjoint U W ∧ U ⊔ W = ⊤`, i.e. {name}`IsCompl`. -/
+/-! Axler's "F³ = U ⊕ W" splits into two claims: the sum is *direct*
+({lit}`IsDirectSum ![U, W]`), and the sum is *all of F³*
+({lit}`U ⊔ W = ⊤`). -/
 
-/-! 1.43 Example: a direct sum of multiple subspaces
+example : IsDirectSum (F := F) ![U, W] := by
+  intro f g hfg
+  -- f, g : (i : Fin 2) → ![U, W] i. Show f i = g i for i = 0 and i = 1.
+  -- The sum equality at coordinates 0, 1, 2 pins down each component.
+  funext i
+  apply Subtype.ext
+  -- Read off the constraints from f 0 ∈ U, f 1 ∈ W (and similarly for g).
+  -- f 0 has v 2 = 0, f 1 has v 0 = v 1 = 0; the sum at j gives:
+  --   j = 0: (f 0) 0 + 0 = (g 0) 0 + 0  ⟹  (f 0) 0 = (g 0) 0
+  --   j = 1: (f 0) 1 + 0 = (g 0) 1 + 0  ⟹  (f 0) 1 = (g 0) 1
+  --   j = 2: 0 + (f 1) 2 = 0 + (g 1) 2  ⟹  (f 1) 2 = (g 1) 2
+  have hf0 := (f 0).2
+  have hf1 := (f 1).2
+  have hg0 := (g 0).2
+  have hg1 := (g 1).2
+  fin_cases i <;> funext j <;> fin_cases j
+  · have h := congrFun hfg 0; simpa [Fin.sum_univ_two, hf1.1, hg1.1] using h
+  · have h := congrFun hfg 1; simpa [Fin.sum_univ_two, hf1.2, hg1.2] using h
+  · exact hf0.trans hg0.symm
+  · exact hf1.1.trans hg1.1.symm
+  · exact hf1.2.trans hg1.2.symm
+  · have h := congrFun hfg 2
+    simp only [Fin.sum_univ_two, Pi.add_apply] at h
+    rw [hf0, hg0, zero_add, zero_add] at h
+    exact h
 
-For {lit}`Vₖ = {v ∈ Fⁿ : vᵢ = 0 for i ≠ k}` (the {lit}`k`-th coordinate axis),
-{lit}`Fⁿ = V₁ ⊕ ⋯ ⊕ Vₙ`. -/
+example : (U : Submodule F (Fin 3 → F)) ⊔ W = ⊤ := by
+  rw [eq_top_iff]
+  intro v _
+  refine Submodule.mem_sup.mpr ⟨![v 0, v 1, 0], rfl,
+          ![0, 0, v 2], ⟨rfl, rfl⟩, ?_⟩
+  funext i; fin_cases i <;> simp
+
+end Example_1_42
+
+/-! 1.43 Example: a direct sum of multiple subspaces -/
+
+namespace Example_1_43
+
+def Axis (n : ℕ) (k : Fin n) : Submodule F (Fin n → F) where
+  carrier := {v | ∀ i, i ≠ k → v i = 0}
+  zero_mem' := by intro i _; rfl
+  add_mem' := by
+    intro u v hu hv i hi
+    show u i + v i = 0
+    rw [hu i hi, hv i hi, add_zero]
+  smul_mem' := by
+    intro a v hv i hi
+    show a • v i = 0
+    rw [hv i hi, smul_zero]
+
+example (n : ℕ) : IsDirectSum (Axis (F := F) n) := by
+  intro u v huv
+  -- Pick an index k; show u k = v k as functions Fin n → F.
+  funext k
+  apply Subtype.ext
+  funext j
+  -- Off-diagonal coords are 0 by membership in Axis n k.
+  by_cases hjk : j = k
+  · -- At j = k, the sum collapses to (u k) k = (v k) k.
+    rw [hjk]
+    have hu : (∑ i, ((u i : Fin n → F))) k = (u k : Fin n → F) k := by
+      rw [Finset.sum_apply]
+      apply Finset.sum_eq_single k
+      · intro i _ hik; exact (u i).2 k hik.symm
+      · intro h; exact absurd (Finset.mem_univ k) h
+    have hv : (∑ i, ((v i : Fin n → F))) k = (v k : Fin n → F) k := by
+      rw [Finset.sum_apply]
+      apply Finset.sum_eq_single k
+      · intro i _ hik; exact (v i).2 k hik.symm
+      · intro h; exact absurd (Finset.mem_univ k) h
+    have h := congrArg (· k) huv
+    simp only at h
+    rw [← hu, ← hv, h]
+  · rw [(u k).2 j hjk, (v k).2 j hjk]
+
+/-! Sum is everything: every {lit}`v ∈ Fⁿ` decomposes as
+{lit}`v = e_1(v) + ⋯ + e_n(v)`. -/
+
+example (n : ℕ) : (⨆ k, Axis (F := F) n k) = ⊤ := by
+  rw [eq_top_iff]
+  intro v _
+  -- e_k(v) := Function.update 0 k (v k), with closure proof inline.
+  have h : (∑ k, (⟨Function.update (0 : Fin n → F) k (v k),
+            fun i hi => by rw [Function.update_of_ne hi _ _]; rfl⟩
+              : Axis (F := F) n k).1) = v := by
+    funext j
+    rw [Finset.sum_apply]
+    rw [Finset.sum_eq_single j
+        (fun i _ hij => by
+          show Function.update (0 : Fin n → F) i (v i) j = 0
+          rw [Function.update_of_ne hij.symm _ _]; rfl)
+        (fun h => absurd (Finset.mem_univ j) h)]
+    show Function.update (0 : Fin n → F) j (v j) j = v j
+    simp
+  rw [← h]
+  exact Submodule.sum_mem_iSup (fun k => (⟨_, _⟩ : Axis (F := F) n k).2)
+
+end Example_1_43
 
 /-! 1.44 Example: a sum that is *not* a direct sum
 
@@ -427,79 +521,150 @@ Then {lit}`F³ = V₁ + V₂ + V₃` but {lit}`0` has more than one representati
 the sum is *not* direct. Pairwise intersections are all {lit}`{0}`, which is
 why 1.46 below characterizes direct sums only of *two* subspaces. -/
 
-/-! 1.45 Condition for a direct sum
+namespace Example_1_44
 
-The sum is direct iff the only way to write {lit}`0` as {lit}`v₁ + ⋯ + vₘ` with
-{lit}`vₖ ∈ Vₖ` is to take each {lit}`vₖ = 0`. For two subspaces, this is
-{name}`Submodule.disjoint_iff_add_eq_zero`. -/
+def V₁ : Submodule F (Fin 3 → F) where
+  carrier := {v | v 2 = 0}
+  zero_mem' := rfl
+  add_mem' := by intro u v hu hv; show u 2 + v 2 = 0; rw [hu, hv, add_zero]
+  smul_mem' := by intro a v hv; show a • v 2 = 0; rw [hv, smul_zero]
 
-example {U W : Submodule F V} :
-    Disjoint U W ↔ ∀ {x y : V}, x ∈ U → y ∈ W → x + y = 0 → x = 0 ∧ y = 0 :=
-  Submodule.disjoint_iff_add_eq_zero
+def V₂ : Submodule F (Fin 3 → F) where
+  carrier := {v | v 0 = 0 ∧ v 1 = 0}
+  zero_mem' := ⟨rfl, rfl⟩
+  add_mem' := by
+    rintro u v ⟨h0, h1⟩ ⟨h0', h1'⟩
+    exact ⟨by simp [Pi.add_apply, h0, h0'], by simp [Pi.add_apply, h1, h1']⟩
+  smul_mem' := by
+    rintro a v ⟨h0, h1⟩
+    exact ⟨by simp [Pi.smul_apply, h0], by simp [Pi.smul_apply, h1]⟩
 
-/-! 1.46 Direct sum of two subspaces
+def V₃ : Submodule F (Fin 3 → F) where
+  carrier := {v | v 0 = 0 ∧ v 1 = v 2}
+  zero_mem' := ⟨rfl, rfl⟩
+  add_mem' := by
+    rintro u v ⟨h0, h12⟩ ⟨h0', h12'⟩
+    refine ⟨by simp [Pi.add_apply, h0, h0'], ?_⟩
+    show u 1 + v 1 = u 2 + v 2
+    rw [h12, h12']
+  smul_mem' := by
+    rintro a v ⟨h0, h12⟩
+    refine ⟨by simp [Pi.smul_apply, h0], ?_⟩
+    show a • v 1 = a • v 2
+    rw [h12]
 
-{lit}`U + W` is a direct sum {lit}`⟺ U ∩ W = {0}`. -/
+/-! Two distinct representations of {lit}`0`:
+- the trivial one (all zero),
+- {lit}`v₁ = (0, 1, 0) ∈ V₁`, {lit}`v₂ = (0, 0, 1) ∈ V₂`,
+  {lit}`v₃ = (0, -1, -1) ∈ V₃`. Their sum is {lit}`(0, 0, 0) = 0`. -/
 
-theorem disjoint_iff_inter_trivial (U W : Submodule F V) :
-    U ⊓ W = ⊥ ↔ ∀ v, v ∈ U → v ∈ W → v = 0 := by
-  rw [Submodule.eq_bot_iff]
-  exact ⟨fun h v hu hw => h v ⟨hu, hw⟩, fun h v ⟨hu, hw⟩ => h v hu hw⟩
+example : ¬ IsDirectSum (F := F) ![V₁, V₂, V₃] := by
+  intro h
+  -- The nontrivial witness, packaged member-by-member.
+  have m₀ : (![0, 1, 0] : Fin 3 → F) ∈ ![V₁, V₂, V₃] (0 : Fin 3) := rfl
+  have m₁ : (![0, 0, 1] : Fin 3 → F) ∈ ![V₁, V₂, V₃] (1 : Fin 3) := ⟨rfl, rfl⟩
+  have m₂ : (![0, -1, -1] : Fin 3 → F) ∈ ![V₁, V₂, V₃] (2 : Fin 3) := ⟨rfl, rfl⟩
+  let f : (i : Fin 3) → ![V₁, V₂, V₃] i := fun i =>
+    match i with
+    | ⟨0, _⟩ => ⟨_, m₀⟩
+    | ⟨1, _⟩ => ⟨_, m₁⟩
+    | ⟨2, _⟩ => ⟨_, m₂⟩
+  let g : (i : Fin 3) → ![V₁, V₂, V₃] i := fun i =>
+    ⟨(0 : Fin 3 → F), (![V₁, V₂, V₃] i).zero_mem⟩
+  have hsum : (∑ i, ((f i : Fin 3 → F))) = (∑ i, ((g i : Fin 3 → F))) := by
+    funext j
+    fin_cases j <;> simp [f, g, Fin.sum_univ_three]
+  have heq : f = g := h f g hsum
+  -- f 0 = (0, 1, 0); reading coordinate 1 yields 1 = 0.
+  have h1 : (f 0 : Fin 3 → F) 1 = (g 0 : Fin 3 → F) 1 := by rw [heq]
+  simp [f, g] at h1
+
+end Example_1_44
+
+/-! 1.45 Condition for a direct sum -/
+
+theorem isDirectSum_iff {m : ℕ} (W : Fin m → Submodule F V) :
+    IsDirectSum W ↔ ∀ (u : (i : Fin m) → W i), (∑ i, ((u i : V))) = 0 ↔ u = 0 := by
+  refine ⟨fun h u => ⟨fun hu => h u 0 (by simpa using hu), fun hu => by simp [hu]⟩, ?_⟩
+  intro h u v huv
+  have hzero : u - v = 0 := by
+    apply (h _).mp
+    simp only [Pi.sub_apply, AddSubgroupClass.coe_sub, Finset.sum_sub_distrib]
+    rw [huv, sub_self]
+  exact sub_eq_zero.mp hzero
+
+/-! 1.46 Direct sum of two subspaces -/
+
+theorem isDirectSum_pair_iff (U W : Submodule F V) :
+    IsDirectSum (F := F) ![U, W] ↔ U ⊓ W = ⊥ := by
+  rw [isDirectSum_iff, Submodule.eq_bot_iff]
+  refine ⟨?_, ?_⟩
+  · -- direct sum → intersection trivial
+    intro h v ⟨hvU, hvW⟩
+    have m₀ : v ∈ ![U, W] (0 : Fin 2) := hvU
+    have m₁ : (-v) ∈ ![U, W] (1 : Fin 2) := W.neg_mem hvW
+    let u : (i : Fin 2) → ![U, W] i := fun i => match i with
+      | ⟨0, _⟩ => ⟨v, m₀⟩
+      | ⟨1, _⟩ => ⟨-v, m₁⟩
+    have hsum : (∑ i, ((u i : V))) = 0 := by simp [u, Fin.sum_univ_two]
+    have hu : u = 0 := (h u).mp hsum
+    have : (u 0 : V) = (0 : V) := by rw [hu]; rfl
+    simpa [u] using this
+  · -- intersection trivial → direct sum
+    intro hint u
+    refine ⟨fun hsum => ?_, fun hu => by simp [hu]⟩
+    rw [Fin.sum_univ_two] at hsum
+    have h0 : (u 0 : V) = -(u 1 : V) := eq_neg_of_add_eq_zero_left hsum
+    have h0W : (u 0 : V) ∈ W := by rw [h0]; exact W.neg_mem (u 1).2
+    have h0Z : (u 0 : V) = 0 := hint _ ⟨(u 0).2, h0W⟩
+    have h1Z : (u 1 : V) = 0 := by rw [← neg_eq_zero, ← h0, h0Z]
+    funext i
+    fin_cases i <;> apply Subtype.ext
+    · exact h0Z
+    · exact h1Z
 
 /-! # Exercises -/
 
-/-- 1C.1(a) The set {lit}`{v ∈ F³ : v 0 + 2 v 1 + 3 v 2 = 0}` is a subspace
-of {lit}`F³`. -/
-def exercise_1C_1a : Submodule ℝ (Fin 3 → ℝ) where
-  carrier := {v | v 0 + 2 * v 1 + 3 * v 2 = 0}
-  zero_mem' := by simp
-  add_mem' := by
-    intro u v hu hv
-    simp only [Set.mem_setOf_eq, Pi.add_apply] at *
-    linarith
-  smul_mem' := by
-    intro a v hv
-    simp only [Set.mem_setOf_eq, Pi.smul_apply, smul_eq_mul] at *
-    have : a * v 0 + 2 * (a * v 1) + 3 * (a * v 2) = a * (v 0 + 2 * v 1 + 3 * v 2) := by ring
-    rw [this, hv, mul_zero]
+/-- 1C.1(a) -/
+theorem exercise_1C_1a :
+    ∃ U : Submodule F (Fin 3 → F),
+      (U : Set (Fin 3 → F)) = {v | v 0 + 2 * v 1 + 3 * v 2 = 0} := by
+  sorry
 
-/-! 1C.1(b) The set {lit}`{v ∈ F³ : v 0 + 2 v 1 + 3 v 2 = 4}` is **not** a
-subspace (this is exercise 1C.3 below). -/
+/-- 1C.1(b) -/
+theorem exercise_1C_1b :
+    ¬ ∃ U : Submodule F (Fin 3 → F),
+      (U : Set (Fin 3 → F)) = {v | v 0 + 2 * v 1 + 3 * v 2 = 4} := by
+  sorry
 
-/-- 1C.1(c) The set {lit}`{v ∈ F³ : v 0 * v 1 * v 2 = 0}` is **not** a
-subspace. -/
+/-- 1C.1(c) -/
 theorem exercise_1C_1c :
-    ¬ ∃ U : Submodule ℝ (Fin 3 → ℝ),
-      (U : Set (Fin 3 → ℝ)) = {v | v 0 * v 1 * v 2 = 0} := by
+    ¬ ∃ U : Submodule F (Fin 3 → F),
+      (U : Set (Fin 3 → F)) = {v | v 0 * v 1 * v 2 = 0} := by
   sorry
 
-/-- 1C.1(d) The set {lit}`{v ∈ F³ : v 0 = 5 v 2}` is a subspace. -/
-def exercise_1C_1d : Submodule ℝ (Fin 3 → ℝ) where
-  carrier := {v | v 0 = 5 * v 2}
-  zero_mem' := by simp
-  add_mem' := by
-    intro u v hu hv
-    simp only [Set.mem_setOf_eq, Pi.add_apply] at *
-    rw [hu, hv]; ring
-  smul_mem' := by
-    intro a v hv
-    simp only [Set.mem_setOf_eq, Pi.smul_apply, smul_eq_mul] at *
-    rw [hv]; ring
+/-- 1C.1(d) -/
+theorem exercise_1C_1d :
+    ∃ U : Submodule F (Fin 3 → F),
+      (U : Set (Fin 3 → F)) = {v | v 0 = 5 * v 2} := by
+  sorry
 
-/-! 1C.2 ("verify all assertions about subspaces in 1.35"), and 1C.3, 1C.4
-(calculus statements about differentiable / continuous / integrable functions)
-are omitted here. -/
-
-/-- 1C.3 The set {lit}`{v ∈ ℝ³ : v 0 + 2 v 1 + 3 v 2 = 4}` is **not** a
-subspace of {lit}`ℝ³`. -/
+/-- 1C.3 We model "differentiable on {lit}`(-4, 4)`" as
+{lit}`DifferentiableOn ℝ f (Set.Ioo (-4) 4)` on functions {lit}`ℝ → ℝ`. -/
 theorem exercise_1C_3 :
-    ¬ ∃ U : Submodule ℝ (Fin 3 → ℝ),
-      (U : Set (Fin 3 → ℝ)) = {v | v 0 + 2 * v 1 + 3 * v 2 = 4} := by
+    ∃ U : Submodule ℝ (ℝ → ℝ),
+      (U : Set (ℝ → ℝ)) =
+        {f | DifferentiableOn ℝ f (Set.Ioo (-4) 4) ∧ deriv f (-1) = 3 * f 2} := by
   sorry
 
-/-- 1C.5 {lit}`ℝ²` is *not* a subspace of the complex vector space {lit}`ℂ²`:
-the underlying field is wrong, since {lit}`ℝ²` is closed under real scalars,
-not complex ones. -/
+/-- 1C.4 -/
+theorem exercise_1C_4 (b : ℝ) :
+    (∃ U : Submodule ℝ (ℝ → ℝ),
+        (U : Set (ℝ → ℝ)) =
+          {f | ContinuousOn f (Set.Icc 0 1) ∧ ∫ x in (0)..1, f x = b}) ↔ b = 0 := by
+  sorry
+
+/-- 1C.5 -/
 theorem exercise_1C_5 :
     ¬ ∃ U : Submodule ℂ (Fin 2 → ℂ),
       (U : Set (Fin 2 → ℂ)) = {v | ∀ i, (v i).im = 0} := by
@@ -618,25 +783,50 @@ theorem exercise_1C_19 :
       V₁ ⊔ U = V₂ ⊔ U ∧ V₁ ≠ V₂ := by
   sorry
 
-/-- 1C.20 There is a subspace {lit}`W` of {lit}`F⁴` such that
-{lit}`F⁴ = U ⊕ W`, where {lit}`U = {(x, x, y, y) : x, y ∈ F}`. -/
-theorem exercise_1C_20 (U : Submodule F (Fin 4 → F)) :
-    ∃ W : Submodule F (Fin 4 → F), IsCompl U W := by
+/-- 1C.20 With {lit}`U = {(x, x, y, y) ∈ F⁴ : x, y ∈ F}`, find a subspace
+{lit}`W` of {lit}`F⁴` such that {lit}`F⁴ = U ⊕ W`. -/
+def exercise_1C_20_U : Submodule F (Fin 4 → F) where
+  carrier := {v | v 0 = v 1 ∧ v 2 = v 3}
+  zero_mem' := ⟨rfl, rfl⟩
+  add_mem' := by
+    rintro u v ⟨h1, h2⟩ ⟨h1', h2'⟩
+    exact ⟨by simp [Pi.add_apply, h1, h1'], by simp [Pi.add_apply, h2, h2']⟩
+  smul_mem' := by
+    rintro a v ⟨h1, h2⟩
+    exact ⟨by simp [Pi.smul_apply, h1], by simp [Pi.smul_apply, h2]⟩
+
+theorem exercise_1C_20 :
+    ∃ W : Submodule F (Fin 4 → F), IsCompl (exercise_1C_20_U (F := F)) W := by
   sorry
 
-/-- 1C.21 There is a subspace {lit}`W` of {lit}`F⁵` such that
-{lit}`F⁵ = U ⊕ W`, where
-{lit}`U = {(x, y, x+y, x-y, 2x) : x, y ∈ F}`. -/
-theorem exercise_1C_21 (U : Submodule F (Fin 5 → F)) :
-    ∃ W : Submodule F (Fin 5 → F), IsCompl U W := by
+/-- 1C.21 With {lit}`U = {(x, y, x+y, x-y, 2x) ∈ F⁵ : x, y ∈ F}`, find a
+subspace {lit}`W` of {lit}`F⁵` such that {lit}`F⁵ = U ⊕ W`. -/
+def exercise_1C_21_U : Submodule F (Fin 5 → F) where
+  carrier := {v | v 2 = v 0 + v 1 ∧ v 3 = v 0 - v 1 ∧ v 4 = 2 * v 0}
+  zero_mem' := ⟨by simp, by simp, by simp⟩
+  add_mem' := by
+    rintro u v ⟨h2, h3, h4⟩ ⟨h2', h3', h4'⟩
+    refine ⟨?_, ?_, ?_⟩
+    · show u 2 + v 2 = (u 0 + v 0) + (u 1 + v 1); rw [h2, h2']; ring
+    · show u 3 + v 3 = (u 0 + v 0) - (u 1 + v 1); rw [h3, h3']; ring
+    · show u 4 + v 4 = 2 * (u 0 + v 0); rw [h4, h4']; ring
+  smul_mem' := by
+    rintro a v ⟨h2, h3, h4⟩
+    refine ⟨?_, ?_, ?_⟩
+    · show a • v 2 = a • v 0 + a • v 1; simp only [smul_eq_mul]; rw [h2]; ring
+    · show a • v 3 = a • v 0 - a • v 1; simp only [smul_eq_mul]; rw [h3]; ring
+    · show a • v 4 = 2 * (a • v 0); simp only [smul_eq_mul]; rw [h4]; ring
+
+theorem exercise_1C_21 :
+    ∃ W : Submodule F (Fin 5 → F), IsCompl (exercise_1C_21_U (F := F)) W := by
   sorry
 
 /-- 1C.22 There exist three nonzero subspaces {lit}`W₁, W₂, W₃` of {lit}`F⁵`
 such that {lit}`F⁵ = U ⊕ W₁ ⊕ W₂ ⊕ W₃`, with {lit}`U` as in 1C.21. -/
-theorem exercise_1C_22 (U : Submodule F (Fin 5 → F)) :
+theorem exercise_1C_22 :
     ∃ W₁ W₂ W₃ : Submodule F (Fin 5 → F),
       W₁ ≠ ⊥ ∧ W₂ ≠ ⊥ ∧ W₃ ≠ ⊥ ∧
-      IsCompl U (W₁ ⊔ W₂ ⊔ W₃) ∧
+      IsCompl (exercise_1C_21_U (F := F)) (W₁ ⊔ W₂ ⊔ W₃) ∧
       Disjoint W₁ W₂ ∧ Disjoint (W₁ ⊔ W₂) W₃ := by
   sorry
 
