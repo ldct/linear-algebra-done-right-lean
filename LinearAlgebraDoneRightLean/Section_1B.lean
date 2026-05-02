@@ -3,6 +3,7 @@ import Mathlib.Algebra.Module.Pi
 import Mathlib.Algebra.Module.PUnit
 import Mathlib.Data.Complex.Basic
 import Mathlib.Data.EReal.Basic
+import Mathlib.Data.EReal.Operations
 import Mathlib.Data.Real.Basic
 import Mathlib.Tactic.Linter.Style
 import Mathlib.Tactic.Recall
@@ -219,27 +220,27 @@ theorem exercise_1B_5 (V : Type*) [AddCommMonoid V] (m : AxlerAltModule F V) :
     ∀ v : V, ∃ w : V, v + w = 0 := by
   sorry
 
-/-- Axler's textbook addition on {lit}`ℝ ∪ {∞, -∞} = EReal` (where {lit}`⊤ = ∞`
-and {lit}`⊥ = -∞`). Mathlib's {lit}`EReal.add` sets {lit}`⊤ + ⊥ = ⊥`, but Axler's
-convention is {lit}`∞ + (-∞) = 0`; this is the only edge case where the two
-disagree. -/
+/-! 1B.6
+  For this exericise, instead of redefiniting extended reals we will use
+  mathlib's {name}`EReal` type, which is `ℝ ∪ {∞, -∞}`.
+  In mathlib {lit}`⊤ = ∞` and {lit}`⊥ = -∞`
+
+  However, mathlib's {name}`EReal` addition is not the same as Axler's it
+  has {lit}`⊤ + ⊥ = ⊥`, but Axler's convention is {lit}`∞ + (-∞) = 0`.
+
+  So we define a new addition {lit}`addAxler` that agrees with Axler's convention.
+-/
 noncomputable def addAxler (x y : EReal) : EReal :=
   if (x = ⊤ ∧ y = ⊥) ∨ (x = ⊥ ∧ y = ⊤) then 0 else x + y
 
-/-- 1B.6: with the textbook's operations, {lit}`EReal` is not a vector space
-over {lit}`ℝ`.
+/-- with the textbook's operations, {lit}`EReal` is not a vector space
+over {lit}`ℝ`. The failure is in the additive structure (associativity fails
+for {lit}`addAxler`), so we refute the existence of any {lit}`AddCommGroup`
+structure on {lit}`EReal` whose addition is {lit}`addAxler`.
 
-Why {lit}`LADRVectorSpace` here? The exercise *prescribes* a specific addition
-({lit}`addAxler`) and asks whether the axioms hold. With mathlib's typeclasses,
-the addition is fixed by the {lit}`Add EReal` instance — there's no clean way to
-say "consider this alternative addition and check the axioms". The bundled
-structure exposes {lit}`add` as a data field, so the constraint
-{lit}`vs.add = addAxler` is one line.
-
-TODO: see if we can replace LADRVectorSpace with mathlib here.
--/
-theorem exercise_1B_6 :
-    IsEmpty { vs : LADRVectorSpace ℝ EReal // vs.add = addAxler } := by
+Note: mathlib cannot not provide an {lit}`AddGroup EReal` instance either —
+{lit}`EReal` even with its addition definition. -/
+theorem exercise_1B_6 : ¬ ∃ g : AddCommGroup EReal, g.add = addAxler := by
   sorry
 
 /-- 1B.7: {lit}`V^S = (S → V)` is a vector space with pointwise operations. We
@@ -275,5 +276,50 @@ def exercise_1B_8 (W : Type*) [AddCommGroup W] [Module ℝ W] :
   zero_smul := by sorry
   smul_add := by sorry
   add_smul := by sorry
+
+/-! # Appendix: Axler's prescribed operations on {name}`EReal`
+
+Axler 1B.6 prescribes specific values for {lit}`t · ∞`, {lit}`t · (-∞)`, and the
+additive cases involving {lit}`±∞`. Mathlib's existing {name}`EReal` operations
+match each of Axler's values *except* for {lit}`∞ + (-∞)` and {lit}`(-∞) + ∞`,
+which is exactly what {lit}`addAxler` patches. For scalar multiplication we use
+mathlib's {name}`EReal` multiplication via the coercion:
+{lit}`t • x := (t : EReal) * x`. -/
+
+/-! Axler's scalar action on {lit}`⊤ = ∞`. -/
+
+theorem axler_smul_top_pos {t : ℝ} (h : 0 < t) : (t : EReal) * ⊤ = ⊤ :=
+  EReal.mul_top_of_pos (EReal.coe_pos.mpr h)
+
+theorem axler_smul_top_zero : ((0 : ℝ) : EReal) * ⊤ = 0 := by simp
+
+theorem axler_smul_top_neg {t : ℝ} (h : t < 0) : (t : EReal) * ⊤ = ⊥ :=
+  EReal.mul_top_of_neg (EReal.coe_neg'.mpr h)
+
+/-! Axler's scalar action on {lit}`⊥ = -∞`. -/
+
+theorem axler_smul_bot_pos {t : ℝ} (h : 0 < t) : (t : EReal) * ⊥ = ⊥ :=
+  EReal.mul_bot_of_pos (EReal.coe_pos.mpr h)
+
+theorem axler_smul_bot_zero : ((0 : ℝ) : EReal) * ⊥ = 0 := by simp
+
+theorem axler_smul_bot_neg {t : ℝ} (h : t < 0) : (t : EReal) * ⊥ = ⊤ :=
+  EReal.mul_bot_of_neg (EReal.coe_neg'.mpr h)
+
+/-! Axler's additive cases that *do* match mathlib's {lit}`+`. -/
+
+theorem axler_add_top (t : ℝ) : (t : EReal) + ⊤ = ⊤ := EReal.coe_add_top t
+theorem axler_top_add (t : ℝ) : ⊤ + (t : EReal) = ⊤ := by rw [add_comm]; exact EReal.coe_add_top t
+theorem axler_top_add_top : (⊤ : EReal) + ⊤ = ⊤ := by simp
+
+theorem axler_add_bot (t : ℝ) : (t : EReal) + ⊥ = ⊥ := by simp
+theorem axler_bot_add (t : ℝ) : ⊥ + (t : EReal) = ⊥ := EReal.bot_add t
+theorem axler_bot_add_bot : (⊥ : EReal) + ⊥ = ⊥ := by simp
+
+/-! Axler's two non-mathlib additive cases — these are exactly what
+{lit}`addAxler` overrides, so we state them about {lit}`addAxler`, not {lit}`+`. -/
+
+theorem axler_top_add_bot : addAxler ⊤ ⊥ = 0 := by unfold addAxler; simp
+theorem axler_bot_add_top : addAxler ⊥ ⊤ = 0 := by unfold addAxler; simp
 
 end LADR.Section_1B
