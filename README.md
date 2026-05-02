@@ -12,7 +12,7 @@ from trivializing exercises.
 | Section | Drafted | Reviewed | Playtested |
 |---|---|---|---|
 | 1A. ℝⁿ and ℂⁿ | ✓ | ✓ | — |
-| 1B. Definition of vector space | ✓ | — | — |
+| 1B. Definition of vector space | ✓ | ✓ | — |
 | 1C. Subspaces | ✓ | — | — |
 
 ## Layout
