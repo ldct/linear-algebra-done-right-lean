@@ -626,38 +626,47 @@ theorem isDirectSum_pair_iff (U W : Submodule F V) :
 /-! # Exercises -/
 
 /-- 1C.1(a) -/
-theorem exercise_1C_1a :
-    ∃ U : Submodule F (Fin 3 → F),
-      (U : Set (Fin 3 → F)) = {v | v 0 + 2 * v 1 + 3 * v 2 = 0} := by
+def exercise_1C_1a :
+    Decidable (∃ U : Submodule F (Fin 3 → F),
+      (U : Set (Fin 3 → F)) = {v | v 0 + 2 * v 1 + 3 * v 2 = 0}) := by
+  -- first line should be `apply isTrue` or `apply isFalse`
   sorry
 
 /-- 1C.1(b) -/
-theorem exercise_1C_1b :
-    ¬ ∃ U : Submodule F (Fin 3 → F),
-      (U : Set (Fin 3 → F)) = {v | v 0 + 2 * v 1 + 3 * v 2 = 4} := by
+def exercise_1C_1b :
+    Decidable (∃ U : Submodule F (Fin 3 → F),
+      (U : Set (Fin 3 → F)) = {v | v 0 + 2 * v 1 + 3 * v 2 = 4}) := by
+  -- first line should be `apply isTrue` or `apply isFalse`
   sorry
 
 /-- 1C.1(c) -/
-theorem exercise_1C_1c :
-    ¬ ∃ U : Submodule F (Fin 3 → F),
-      (U : Set (Fin 3 → F)) = {v | v 0 * v 1 * v 2 = 0} := by
+def exercise_1C_1c :
+    Decidable (∃ U : Submodule F (Fin 3 → F),
+      (U : Set (Fin 3 → F)) = {v | v 0 * v 1 * v 2 = 0}) := by
+  -- first line should be `apply isTrue` or `apply isFalse`
   sorry
 
 /-- 1C.1(d) -/
-theorem exercise_1C_1d :
-    ∃ U : Submodule F (Fin 3 → F),
-      (U : Set (Fin 3 → F)) = {v | v 0 = 5 * v 2} := by
+def exercise_1C_1d :
+    Decidable (∃ U : Submodule F (Fin 3 → F),
+      (U : Set (Fin 3 → F)) = {v | v 0 = 5 * v 2}) := by
+  -- first line should be `apply isTrue` or `apply isFalse`
   sorry
 
-/-- 1C.3 We model "differentiable on {lit}`(-4, 4)`" as
-{lit}`DifferentiableOn ℝ f (Set.Ioo (-4) 4)` on functions {lit}`ℝ → ℝ`. -/
+/-- 1C.3 Axler's ambient space is {lit}`ℝ^(-4, 4)`, i.e. the function space
+{lit}`Set.Ioo (-4) 4 → ℝ`. We use the larger {lit}`ℝ → ℝ` instead because
+mathlib's {name}`Differentiable` requires the source to be a normed space and
+the subtype {lit}`↥(Set.Ioo (-4) 4)` isn't one. -/
 theorem exercise_1C_3 :
     ∃ U : Submodule ℝ (ℝ → ℝ),
       (U : Set (ℝ → ℝ)) =
         {f | DifferentiableOn ℝ f (Set.Ioo (-4) 4) ∧ deriv f (-1) = 3 * f 2} := by
   sorry
 
-/-- 1C.4 -/
+/-- 1C.4 Axler's ambient space is {lit}`ℝ^[0,1]`, i.e. {lit}`Set.Icc 0 1 → ℝ`.
+We use {lit}`ℝ → ℝ` instead so the integral reads as the familiar
+{lit}`∫ x in (0)..1, f x` via {name}`intervalIntegral`; the faithful subtype
+version would need measure theory. -/
 theorem exercise_1C_4 (b : ℝ) :
     (∃ U : Submodule ℝ (ℝ → ℝ),
         (U : Set (ℝ → ℝ)) =
@@ -665,38 +674,37 @@ theorem exercise_1C_4 (b : ℝ) :
   sorry
 
 /-- 1C.5 -/
-theorem exercise_1C_5 :
-    ¬ ∃ U : Submodule ℂ (Fin 2 → ℂ),
-      (U : Set (Fin 2 → ℂ)) = {v | ∀ i, (v i).im = 0} := by
+def exercise_1C_5 :
+    Decidable (∃ U : Submodule ℂ (Fin 2 → ℂ),
+      (U : Set (Fin 2 → ℂ)) = {v | ∀ i, (v i).im = 0}) := by
+  -- first line should be `apply isTrue` or `apply isFalse`
   sorry
 
-/-- 1C.6(a) The set {lit}`{(a, b, c) ∈ ℝ³ : a³ = b³}` is a subspace of
-{lit}`ℝ³`. -/
-theorem exercise_1C_6a :
-    ∃ U : Submodule ℝ (Fin 3 → ℝ),
-      (U : Set (Fin 3 → ℝ)) = {v | v 0 ^ 3 = v 1 ^ 3} := by
+/-- 1C.6(a) -/
+def exercise_1C_6a :
+    Decidable (∃ U : Submodule ℝ (Fin 3 → ℝ),
+      (U : Set (Fin 3 → ℝ)) = {v | v 0 ^ 3 = v 1 ^ 3}) := by
+  -- first line should be `apply isTrue` or `apply isFalse`
   sorry
 
-/-- 1C.6(b) The set {lit}`{(a, b, c) ∈ ℂ³ : a³ = b³}` is **not** a subspace
-of {lit}`ℂ³`. -/
-theorem exercise_1C_6b :
-    ¬ ∃ U : Submodule ℂ (Fin 3 → ℂ),
-      (U : Set (Fin 3 → ℂ)) = {v | v 0 ^ 3 = v 1 ^ 3} := by
+/-- 1C.6(b) -/
+def exercise_1C_6b :
+    Decidable (∃ U : Submodule ℂ (Fin 3 → ℂ),
+      (U : Set (Fin 3 → ℂ)) = {v | v 0 ^ 3 = v 1 ^ 3}) := by
+  -- first line should be `apply isTrue` or `apply isFalse`
   sorry
 
-/-- 1C.7 *Counterexample.* There is a nonempty subset of {lit}`ℝ²` closed under
-addition and additive inverses but **not** a subspace. (Hint: {lit}`ℤ²`.) -/
-theorem exercise_1C_7 :
-    ∃ U : Set (Fin 2 → ℝ),
-      U.Nonempty ∧
-      (∀ u ∈ U, ∀ v ∈ U, u + v ∈ U) ∧
-      (∀ u ∈ U, -u ∈ U) ∧
-      ¬ ∃ S : Submodule ℝ (Fin 2 → ℝ), (S : Set (Fin 2 → ℝ)) = U := by
+/-- 1C.7 -/
+def exercise_1C_7 :
+    Decidable (∀ U : Set (Fin 2 → ℝ),
+      U.Nonempty →
+      (∀ u ∈ U, ∀ v ∈ U, u + v ∈ U) →
+      (∀ u ∈ U, -u ∈ U) →
+      ∃ S : Submodule ℝ (Fin 2 → ℝ), (S : Set (Fin 2 → ℝ)) = U) := by
+  -- first line should be `apply isTrue` or `apply isFalse`
   sorry
 
-/-- 1C.8 *Counterexample.* There is a nonempty subset of {lit}`ℝ²` closed
-under scalar multiplication but **not** a subspace. (Hint: the union of the
-two coordinate axes.) -/
+/-- 1C.8 -/
 theorem exercise_1C_8 :
     ∃ U : Set (Fin 2 → ℝ),
       U.Nonempty ∧
@@ -704,87 +712,121 @@ theorem exercise_1C_8 :
       ¬ ∃ S : Submodule ℝ (Fin 2 → ℝ), (S : Set (Fin 2 → ℝ)) = U := by
   sorry
 
-/-- 1C.9 The set of periodic functions {lit}`ℝ → ℝ` is *not* a subspace of
-{lit}`ℝ → ℝ` (the sum of two periodic functions need not be periodic). -/
 def Periodic (f : ℝ → ℝ) : Prop := ∃ p > 0, ∀ x, f x = f (x + p)
 
-theorem exercise_1C_9 :
-    ¬ ∃ U : Submodule ℝ (ℝ → ℝ), (U : Set (ℝ → ℝ)) = {f | Periodic f} := by
+/-- 1C.9 -/
+def exercise_1C_9 :
+    Decidable (∃ U : Submodule ℝ (ℝ → ℝ), (U : Set (ℝ → ℝ)) = {f | Periodic f}) := by
+  -- first line should be `apply isTrue` or `apply isFalse`
   sorry
 
-/-- 1C.10 The intersection of two subspaces is a subspace. In mathlib this is
-the lattice infimum {lit}`U ⊓ W`. -/
-example (U W : Submodule F V) : Submodule F V := U ⊓ W
+/-- 1C.10 The intersection of two subspaces is a subspace. The student must
+build a {name}`Submodule` whose carrier is {lit}`(U : Set V) ∩ (W : Set V)`,
+i.e. prove the three closure axioms hold for the intersection. (In mathlib
+this submodule is the lattice infimum {lit}`U ⊓ W`, which the
+{name}`SemilatticeInf` instance on {name}`Submodule` produces automatically;
+the exercise is to do that construction by hand.) -/
+theorem exercise_1C_10 (U W : Submodule F V) :
+    ∃ S : Submodule F V, (S : Set V) = (U : Set V) ∩ (W : Set V) := by
+  sorry
 
 /-- 1C.11 The intersection of *any* collection of subspaces of {lit}`V` is a
-subspace. In mathlib this is the lattice infimum {lit}`sInf` / {lit}`iInf`. -/
-example (𝒞 : Set (Submodule F V)) : Submodule F V := sInf 𝒞
-example {ι : Type*} (𝒞 : ι → Submodule F V) : Submodule F V := iInf 𝒞
+subspace. The student must build a {name}`Submodule` whose carrier is the
+intersection {lit}`⋂ U ∈ 𝒞, (U : Set V)`, i.e. prove the three closure axioms
+hold for an arbitrary intersection. (In mathlib this submodule is the lattice
+infimum {name}`sInf` (or {name}`iInf` for an indexed family), which the
+{name}`CompleteLattice` instance on {name}`Submodule` produces automatically;
+the exercise is to do that construction by hand.) -/
+theorem exercise_1C_11 (𝒞 : Set (Submodule F V)) :
+    ∃ S : Submodule F V, (S : Set V) = ⋂ U ∈ 𝒞, (U : Set V) := by
+  sorry
 
-/-- 1C.12 The union of two subspaces of {lit}`V` is a subspace iff one of the
-subspaces is contained in the other. -/
+/-- 1C.12 -/
 @[avoiding Submodule.union_eq_iff_le_or_le]
 theorem exercise_1C_12 (U W : Submodule F V) :
     (∃ S : Submodule F V, (S : Set V) = (U : Set V) ∪ (W : Set V)) ↔
       U ≤ W ∨ W ≤ U := by
   sorry
 
-/-- 1C.13 The union of three subspaces of {lit}`V` is a subspace iff one
-contains the other two. (This requires {lit}`F` to have more than two
-elements.) -/
+/-- 1C.13 -/
 theorem exercise_1C_13 (U W X : Submodule F V) (_hF : ∃ a : F, a ≠ 0 ∧ a ≠ 1) :
     (∃ S : Submodule F V, (S : Set V) = (U : Set V) ∪ W ∪ X) ↔
       (W ≤ U ∧ X ≤ U) ∨ (U ≤ W ∧ X ≤ W) ∨ (U ≤ X ∧ W ≤ X) := by
   sorry
 
-/-- 1C.14 With {lit}`U = {(x, -x, 2x) : x ∈ F}` and
-{lit}`W = {(x, x, 2x) : x ∈ F}` in {lit}`F³`,
-{lit}`U + W = {v ∈ F³ : v 2 = 2 v 0}` — the vectors whose third coordinate is
-twice the first. -/
+/-- 1C.14 The student fills in the predicate (replacing the {lit}`sorry` in
+the right-hand side) and proves the equality. -/
+def exercise_1C_14_U : Submodule F (Fin 3 → F) where
+  carrier := {v | ∃ x : F, v = ![x, -x, 2 * x]}
+  zero_mem' := ⟨0, by funext i; fin_cases i <;> simp⟩
+  add_mem' := by
+    rintro u v ⟨x, rfl⟩ ⟨y, rfl⟩
+    refine ⟨x + y, ?_⟩
+    funext i; fin_cases i <;> simp <;> ring
+  smul_mem' := by
+    rintro a v ⟨x, rfl⟩
+    refine ⟨a * x, ?_⟩
+    funext i; fin_cases i <;> simp [smul_eq_mul] <;> ring
+
+def exercise_1C_14_W : Submodule F (Fin 3 → F) where
+  carrier := {v | ∃ x : F, v = ![x, x, 2 * x]}
+  zero_mem' := ⟨0, by funext i; fin_cases i <;> simp⟩
+  add_mem' := by
+    rintro u v ⟨x, rfl⟩ ⟨y, rfl⟩
+    refine ⟨x + y, ?_⟩
+    funext i; fin_cases i <;> simp <;> ring
+  smul_mem' := by
+    rintro a v ⟨x, rfl⟩
+    refine ⟨a * x, ?_⟩
+    funext i; fin_cases i <;> simp [smul_eq_mul] <;> ring
+
 theorem exercise_1C_14 :
-    ∃ S : Submodule F (Fin 3 → F),
-      (S : Set (Fin 3 → F)) = {v | v 2 = 2 * v 0} := by
+    ((exercise_1C_14_U (F := F) ⊔ exercise_1C_14_W : Submodule F (Fin 3 → F))
+      : Set (Fin 3 → F)) = {v | sorry} := by
   sorry
 
-/-- 1C.15 If {lit}`U` is a subspace of {lit}`V`, then {lit}`U + U = U`. -/
+/-- 1C.15 -/
 @[avoiding sup_idem, sup_self]
-theorem exercise_1C_15 (U : Submodule F V) : U ⊔ U = U := by
+theorem exercise_1C_15 (U : Submodule F V) : U ⊔ U = sorry := by
   sorry
 
-/-- 1C.16 Addition on subspaces of {lit}`V` is commutative:
-{lit}`U + W = W + U`. -/
+/-- 1C.16 -/
 @[avoiding sup_comm]
-theorem exercise_1C_16 (U W : Submodule F V) : U ⊔ W = W ⊔ U := by
+def exercise_1C_16 :
+    Decidable (∀ U W : Submodule F V, U ⊔ W = W ⊔ U) := by
+  -- first line should be `apply isTrue` or `apply isFalse`
   sorry
 
-/-- 1C.17 Addition on subspaces of {lit}`V` is associative:
-{lit}`(V₁ + V₂) + V₃ = V₁ + (V₂ + V₃)`. -/
+/-- 1C.17 -/
 @[avoiding sup_assoc]
-theorem exercise_1C_17 (V₁ V₂ V₃ : Submodule F V) :
-    (V₁ ⊔ V₂) ⊔ V₃ = V₁ ⊔ (V₂ ⊔ V₃) := by
+def exercise_1C_17 :
+    Decidable (∀ V₁ V₂ V₃ : Submodule F V, (V₁ ⊔ V₂) ⊔ V₃ = V₁ ⊔ (V₂ ⊔ V₃)) := by
+  -- first line should be `apply isTrue` or `apply isFalse`
   sorry
 
-/-- 1C.18(a) Addition on subspaces has an additive identity, namely
-{lit}`{0}` ({lit}`⊥` in mathlib). -/
+/-- 1C.18(a) -/
 @[avoiding bot_sup_eq, sup_bot_eq]
-theorem exercise_1C_18_id (U : Submodule F V) : U ⊔ ⊥ = U := by
+def exercise_1C_18_id :
+    Decidable (∃ E : Submodule F V, ∀ U : Submodule F V, U ⊔ E = U) := by
+  -- first line should be `apply isTrue` or `apply isFalse`
   sorry
 
-/-- 1C.18(b) The only subspace with an additive inverse is {lit}`{0}` itself:
-if {lit}`U + W = {0}` then both {lit}`U = {0}` and {lit}`W = {0}`. -/
-theorem exercise_1C_18_inv (U W : Submodule F V) (h : U ⊔ W = ⊥) :
-    U = ⊥ ∧ W = ⊥ := by
+/-- 1C.18(b) *Which subspaces have an additive inverse under sum?* (i.e., for
+which {lit}`U` does there exist {lit}`W` with {lit}`U + W = ⊥`?) Fill in the
+right-hand side {lit}`sorry` with the conjectured characterization
+of {lit}`U`, and then then proves the equivalence. -/
+theorem exercise_1C_18_inv (U : Submodule F V) :
+    (∃ W : Submodule F V, U ⊔ W = ⊥) ↔ sorry := by
   sorry
 
-/-- 1C.19 *Counterexample.* There exist subspaces {lit}`V₁, V₂, U` with
-{lit}`V₁ + U = V₂ + U` but {lit}`V₁ ≠ V₂`. -/
-theorem exercise_1C_19 :
-    ∃ V₁ V₂ U : Submodule ℝ (Fin 2 → ℝ),
-      V₁ ⊔ U = V₂ ⊔ U ∧ V₁ ≠ V₂ := by
+/-- 1C.19 -/
+def exercise_1C_19 :
+    Decidable (∀ V₁ V₂ U : Submodule ℝ (Fin 2 → ℝ),
+      V₁ ⊔ U = V₂ ⊔ U → V₁ = V₂) := by
+  -- first line should be `apply isTrue` or `apply isFalse`
   sorry
 
-/-- 1C.20 With {lit}`U = {(x, x, y, y) ∈ F⁴ : x, y ∈ F}`, find a subspace
-{lit}`W` of {lit}`F⁴` such that {lit}`F⁴ = U ⊕ W`. -/
+/-- 1C.20 -/
 def exercise_1C_20_U : Submodule F (Fin 4 → F) where
   carrier := {v | v 0 = v 1 ∧ v 2 = v 3}
   zero_mem' := ⟨rfl, rfl⟩
@@ -799,8 +841,7 @@ theorem exercise_1C_20 :
     ∃ W : Submodule F (Fin 4 → F), IsCompl (exercise_1C_20_U (F := F)) W := by
   sorry
 
-/-- 1C.21 With {lit}`U = {(x, y, x+y, x-y, 2x) ∈ F⁵ : x, y ∈ F}`, find a
-subspace {lit}`W` of {lit}`F⁵` such that {lit}`F⁵ = U ⊕ W`. -/
+/-- 1C.21 -/
 def exercise_1C_21_U : Submodule F (Fin 5 → F) where
   carrier := {v | v 2 = v 0 + v 1 ∧ v 3 = v 0 - v 1 ∧ v 4 = 2 * v 0}
   zero_mem' := ⟨by simp, by simp, by simp⟩
@@ -821,49 +862,38 @@ theorem exercise_1C_21 :
     ∃ W : Submodule F (Fin 5 → F), IsCompl (exercise_1C_21_U (F := F)) W := by
   sorry
 
-/-- 1C.22 There exist three nonzero subspaces {lit}`W₁, W₂, W₃` of {lit}`F⁵`
-such that {lit}`F⁵ = U ⊕ W₁ ⊕ W₂ ⊕ W₃`, with {lit}`U` as in 1C.21. -/
+/-- 1C.22 The direct-sum condition is captured by {name}`IsDirectSum` on the
+family {lit}`![U, W₁, W₂, W₃]`; the cover by {lit}`U ⊔ W₁ ⊔ W₂ ⊔ W₃ = ⊤`. -/
 theorem exercise_1C_22 :
     ∃ W₁ W₂ W₃ : Submodule F (Fin 5 → F),
       W₁ ≠ ⊥ ∧ W₂ ≠ ⊥ ∧ W₃ ≠ ⊥ ∧
-      IsCompl (exercise_1C_21_U (F := F)) (W₁ ⊔ W₂ ⊔ W₃) ∧
-      Disjoint W₁ W₂ ∧ Disjoint (W₁ ⊔ W₂) W₃ := by
+      IsDirectSum ![exercise_1C_21_U (F := F), W₁, W₂, W₃] ∧
+      exercise_1C_21_U (F := F) ⊔ W₁ ⊔ W₂ ⊔ W₃ = ⊤ := by
   sorry
 
-/-- 1C.23 *Counterexample.* There exist subspaces {lit}`V₁, V₂, U` with
-{lit}`V = V₁ ⊕ U` and {lit}`V = V₂ ⊕ U` but {lit}`V₁ ≠ V₂`. -/
-theorem exercise_1C_23 :
-    ∃ V₁ V₂ U : Submodule ℝ (Fin 2 → ℝ),
-      IsCompl V₁ U ∧ IsCompl V₂ U ∧ V₁ ≠ V₂ := by
+/-- 1C.23 -/
+def exercise_1C_23 :
+    Decidable (∀ V₁ V₂ U : Submodule ℝ (Fin 2 → ℝ),
+      IsCompl V₁ U → IsCompl V₂ U → V₁ = V₂) := by
+  -- first line should be `apply isTrue` or `apply isFalse`
   sorry
 
-/-- 1C.24 Let {lit}`Vₑ` be the even and {lit}`Vₒ` the odd real-valued
-functions on {lit}`ℝ`. Then {lit}`ℝ → ℝ = Vₑ ⊕ Vₒ`. -/
+/-- 1C.24 -/
+
+def IsEven (f : ℝ → ℝ) : Prop := ∀ x, f (-x) = f x
+def IsOdd  (f : ℝ → ℝ) : Prop := ∀ x, f (-x) = -f x
+
 def evenFunctions : Submodule ℝ (ℝ → ℝ) where
-  carrier := {f | ∀ x, f (-x) = f x}
-  zero_mem' := by intro x; simp
-  add_mem' := by
-    intro f g hf hg x
-    show (f + g) (-x) = (f + g) x
-    simp [Pi.add_apply, hf x, hg x]
-  smul_mem' := by
-    intro a f hf x
-    show (a • f) (-x) = (a • f) x
-    simp [Pi.smul_apply, hf x]
+  carrier := {f | IsEven f}
+  zero_mem' := by sorry
+  add_mem' := by sorry
+  smul_mem' := by sorry
 
 def oddFunctions : Submodule ℝ (ℝ → ℝ) where
-  carrier := {f | ∀ x, f (-x) = -f x}
-  zero_mem' := by intro x; simp
-  add_mem' := by
-    intro f g hf hg x
-    show (f + g) (-x) = -((f + g) x)
-    simp only [Pi.add_apply]
-    rw [hf x, hg x]; ring
-  smul_mem' := by
-    intro a f hf x
-    show (a • f) (-x) = -((a • f) x)
-    simp only [Pi.smul_apply]
-    rw [hf x]; ring
+  carrier := {f | IsOdd f}
+  zero_mem' := by sorry
+  add_mem' := by sorry
+  smul_mem' := by sorry
 
 theorem exercise_1C_24 : IsCompl evenFunctions oddFunctions := by
   sorry
