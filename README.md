@@ -2,10 +2,47 @@
 
 A Lean 4 companion to Sheldon Axler's [*Linear Algebra Done Right*](https://linear.axler.net/) (4th edition; freely available as a [PDF](https://linear.axler.net/LADR4e.pdf)).
 
-Authored under the conventions in [companion-helper](https://github.com/rkirov/companion-helper):
-mathlib definitions are used directly, with `recall` to bridge textbook axioms,
-and `@[avoiding …]` from `companion-helper` to keep one-line mathlib lemmas
-from trivializing exercises.
+## What is a companion?
+
+A Lean project that mirrors a specific math textbook: a Lean translation of all
+definitions, proofs, examples, and exercises (without solutions). It contains
+**no narrative** — that stays in the original text — and is meant to be:
+
+1. read concurrently with the text;
+2. cloned and worked through, replacing each `sorry` with a real proof.
+
+The canonical existing example is Tao's *Real Analysis I* companion
+([blog post](https://terrytao.wordpress.com/2025/05/31/a-lean-companion-to-analysis-i/),
+[repo](https://github.com/teorth/analysis)). This project plays the same role
+for Axler.
+
+## Who is it for?
+
+Lean familiarity is the prerequisite. Beyond that:
+
+1. If you already know linear algebra, you're here to practice Lean and pick
+   up the parts of mathlib that cover linear algebra.
+2. If you don't, you learn the math alongside by reading the book.
+
+**This companion will not teach you Lean.** Lean basics are out of scope —
+if you're new to Lean, work through one of the standard introductions first:
+
+- [Mathematics in Lean](https://leanprover-community.github.io/mathematics_in_lean/) (chapters 1–7 are enough; later chapters go beyond what this companion needs)
+- [Theorem Proving in Lean 4](https://leanprover.github.io/theorem_proving_in_lean4/)
+- [Natural Number Game](https://adam.math.hhu.de/)
+
+## Conventions
+
+Authored under the conventions in
+[companion-helper](https://github.com/rkirov/companion-helper):
+
+- **Use mathlib directly.** Where Axler introduces a concept already in
+  mathlib (`Field`, `Module`, `Submodule`, …), the companion uses the mathlib
+  definition rather than redefining it. `recall` bridges Axler's axioms to
+  mathlib's typeclass methods.
+- **`@[avoiding …]`** from `companion-helper` marks exercises whose one-line
+  mathlib solution would defeat the pedagogical point.
+- No cross-imports between companions; mathlib is the only shared layer.
 
 ## Status
 
@@ -34,6 +71,13 @@ lake build
 ```
 
 Toolchain: `leanprover/lean4:v4.29.0`. Mathlib pinned at `v4.29.0`.
+
+## Contributing
+
+PRs fixing typos or improving comments are welcome. Please **don't** send PRs
+to `main` filling in the `sorry`s — they're the exercises. Solutions in your
+own fork (or a separate branch here) are fine; they just shouldn't land on
+`main`.
 
 ## License
 
