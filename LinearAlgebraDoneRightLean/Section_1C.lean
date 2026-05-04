@@ -26,8 +26,10 @@ import CompanionHelper
 
 namespace LADR.Section_1C
 
-/-! Reminder: This is how we say V is a vector space over F in mathlib -/
-variable {F : Type*} [Field F] {V : Type*} [AddCommGroup V] [Module F V]
+/-! Reminder: This is how we say V is a vector space over F
+(and F is like ℝ or ℂ) in mathlib.
+ -/
+variable {F : Type*} [Field F] [CharZero F] {V : Type*} [AddCommGroup V] [Module F V]
 
 /-! 1.33 Definition: subspace
 

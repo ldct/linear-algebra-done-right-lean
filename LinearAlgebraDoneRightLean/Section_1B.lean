@@ -49,8 +49,8 @@ equivalent to Axler's "vector space over {lit}`F`". -/
 
 /-! You will learn what these mean in an abstract algebra course, but
 for now, just treat them as a magic incantation that gives us the properties
-of vector spaces. -/
-variable {F : Type*} [Field F] {V : Type*} [AddCommGroup V] [Module F V]
+of vector spaces over a field F that behaves like ℝ and ℂ -/
+variable {F : Type*} [Field F] [CharZero F] {V : Type*} [AddCommGroup V] [Module F V]
 
 /-! The eight axioms above are derivable from the typeclass methods and
 we get to use a nicer notation. -/
