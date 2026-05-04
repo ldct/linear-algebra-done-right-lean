@@ -44,6 +44,13 @@ Authored under the conventions in
   mathlib solution would defeat the pedagogical point.
 - No cross-imports between companions; mathlib is the only shared layer.
 
+## On AI usage
+
+AI generates the initial draft of each chapter from the freely available
+PDF. Every draft is then reviewed and revised line-by-line by a human (with
+AI assistance) — roughly 1–2 hours of focused review per subsection. More
+on the human-vs-AI split as we accumulate playthroughs.
+
 ## Status
 
 | Section | Drafted | Reviewed | Playtested |
