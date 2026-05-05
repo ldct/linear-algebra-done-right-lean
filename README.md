@@ -76,8 +76,7 @@ One file per section. Future chapters follow the same pattern (`Section_2A.lean`
 lake update mathlib && lake exe cache get   # first time only
 lake build
 ```
-
-Toolchain: `leanprover/lean4:v4.29.0`. Mathlib pinned at `v4.29.0`.
+Toolchain: `leanprover/lean4:v4.30.0-rc2`. Mathlib is pinned at `v4.30.0-rc2`.
 
 ## Contributing
 
