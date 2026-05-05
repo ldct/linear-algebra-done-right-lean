@@ -29,7 +29,7 @@ namespace LADR.Section_1C
 /-! Reminder: This is how we say V is a vector space over F
 (and F is like ℝ or ℂ) in mathlib.
  -/
-variable {F : Type*} [Field F] [CharZero F] {V : Type*} [AddCommGroup V] [Module F V]
+variable {F : Type*} [Field F] {V : Type*} [AddCommGroup V] [Module F V]
 
 /-! 1.33 Definition: subspace
 
@@ -750,37 +750,67 @@ theorem exercise_1C_12 (U W : Submodule F V) :
       U ≤ W ∨ W ≤ U := by
   sorry
 
-/-- 1C.13 -/
-theorem exercise_1C_13 (U W X : Submodule F V) (_hF : ∃ a : F, a ≠ 0 ∧ a ≠ 1) :
+/-- 1C.13 To prove this we need a scalar in {lit}`F` other than {lit}`0` and
+{lit}`1`; we assume {lit}`[CharZero F]`, which forces {lit}`(n : F) ≠ 0` for
+every positive {lit}`n` and is satisfied by {lit}`ℝ` and {lit}`ℂ` (Axler's working fields). -/
+theorem exercise_1C_13 [CharZero F] (U W X : Submodule F V) :
     (∃ S : Submodule F V, (S : Set V) = (U : Set V) ∪ W ∪ X) ↔
       (W ≤ U ∧ X ≤ U) ∨ (U ≤ W ∧ X ≤ W) ∨ (U ≤ X ∧ W ≤ X) := by
   sorry
 
+-- The `<;> ring` finishes the branches that `simp` doesn't close on its own,
+-- so the linter's `(simp; ring)` suggestion would fail with "no goals".
 /-- 1C.14 The student fills in the predicate (replacing the {lit}`sorry` in
 the right-hand side) and proves the equality. -/
 def exercise_1C_14_U : Submodule F (Fin 3 → F) where
   carrier := {v | ∃ x : F, v = ![x, -x, 2 * x]}
-  zero_mem' := ⟨0, by funext i; fin_cases i <;> simp⟩
+  zero_mem' := ⟨0, by
+    funext i
+    fin_cases i
+    · simp
+    · simp
+    · simp⟩
   add_mem' := by
     rintro u v ⟨x, rfl⟩ ⟨y, rfl⟩
     refine ⟨x + y, ?_⟩
-    funext i; fin_cases i <;> simp <;> ring
+    funext i
+    fin_cases i
+    · simp
+    · simp; ring
+    · simp; ring
   smul_mem' := by
     rintro a v ⟨x, rfl⟩
     refine ⟨a * x, ?_⟩
-    funext i; fin_cases i <;> simp [smul_eq_mul] <;> ring
+    funext i
+    fin_cases i
+    · simp [smul_eq_mul]
+    · simp [smul_eq_mul]
+    · simp [smul_eq_mul]; ring
 
 def exercise_1C_14_W : Submodule F (Fin 3 → F) where
   carrier := {v | ∃ x : F, v = ![x, x, 2 * x]}
-  zero_mem' := ⟨0, by funext i; fin_cases i <;> simp⟩
+  zero_mem' := ⟨0, by
+    funext i
+    fin_cases i
+    · simp
+    · simp
+    · simp⟩
   add_mem' := by
     rintro u v ⟨x, rfl⟩ ⟨y, rfl⟩
     refine ⟨x + y, ?_⟩
-    funext i; fin_cases i <;> simp <;> ring
+    funext i
+    fin_cases i
+    · simp
+    · simp
+    · simp; ring
   smul_mem' := by
     rintro a v ⟨x, rfl⟩
     refine ⟨a * x, ?_⟩
-    funext i; fin_cases i <;> simp [smul_eq_mul] <;> ring
+    funext i
+    fin_cases i
+    · simp [smul_eq_mul]
+    · simp [smul_eq_mul]
+    · simp [smul_eq_mul]; ring
 
 theorem exercise_1C_14 :
     ((exercise_1C_14_U (F := F) ⊔ exercise_1C_14_W : Submodule F (Fin 3 → F))

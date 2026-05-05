@@ -96,10 +96,11 @@ example : Fin 3 → ℝ := ![1, 2, 3]
 
 /-! 1.8 Definition: list, length
 
-Axler's *list of length `n` over `α`* is rendered here as `Fin n → α`, with
-the length encoded in the type. **Beware:** Lean has a separate built-in type
-`List α` (a variable-length linked list, written with the `[…]` notation
-instead of `![…]`) — it is *not* what Axler calls a list. -/
+Axler's *list of length {lit}`n` over {lit}`α`* is rendered here as
+{lit}`Fin n → α`, with the length encoded in the type. **Beware:** Lean has a
+separate built-in type {lit}`List α` (a variable-length linked list, written
+with the {lit}`[…]` notation instead of {lit}`![…]`) — it is *not* what Axler
+calls a list. -/
 
 example : Fin 0 → ℝ := ![]
 

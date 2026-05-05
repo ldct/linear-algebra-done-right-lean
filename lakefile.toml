@@ -9,6 +9,7 @@ relaxedAutoImplicit = false
 linter.unusedVariables = true
 maxSynthPendingDepth = 3
 doc.verso = true
+warn.sorry = false
 
 [[require]]
 name = "companion-helper"
