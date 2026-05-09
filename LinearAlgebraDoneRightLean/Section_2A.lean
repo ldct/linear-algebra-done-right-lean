@@ -1,0 +1,825 @@
+import Mathlib.Algebra.Module.Pi
+import Mathlib.Algebra.Module.Submodule.Basic
+import Mathlib.Algebra.Module.Submodule.Lattice
+import Mathlib.Algebra.Polynomial.Basic
+import Mathlib.Algebra.Polynomial.Degree.Defs
+import Mathlib.Algebra.Polynomial.Eval.Defs
+import Mathlib.Data.Complex.Basic
+import Mathlib.LinearAlgebra.Complex.Module
+import Mathlib.Data.Real.Basic
+import Mathlib.LinearAlgebra.FiniteDimensional.Defs
+import Mathlib.LinearAlgebra.LinearIndependent.Basic
+import Mathlib.LinearAlgebra.LinearIndependent.Defs
+import Mathlib.LinearAlgebra.LinearIndependent.Lemmas
+import Mathlib.LinearAlgebra.Span.Basic
+import Mathlib.LinearAlgebra.Span.Defs
+import Mathlib.RingTheory.Finiteness.Defs
+import Mathlib.RingTheory.Polynomial.Basic
+import Mathlib.Tactic.Linarith
+import Mathlib.Tactic.Linter.Style
+import Mathlib.Tactic.Recall
+import Mathlib.Tactic.Ring
+import Mathlib.Topology.ContinuousMap.Algebra
+import Mathlib.Topology.Instances.Real.Lemmas
+import CompanionHelper
+
+/-!
+# Axler, *Linear Algebra Done Right* (4e) — Section 2A: Span and Linear Independence
+-/
+
+namespace LADR.Section_2A
+
+variable {F : Type*} [Field F] {V : Type*} [AddCommGroup V] [Module F V]
+
+/-! 2.1 Notation: list of vectors
+
+Following 1A (1.8), a *list of {lit}`m` vectors in {lit}`V`* is rendered here as
+{lit}`Fin m → V`, with the length encoded in the type. -/
+
+/-! 2.2 Definition: linear combination
+
+A *linear combination* of {lit}`v₁, …, vₘ` is any vector of the form
+{lit}`a₁ v₁ + ⋯ + aₘ vₘ`. In Lean, with {lit}`v : Fin m → V` and
+{lit}`a : Fin m → F`, that's {lit}`∑ i, a i • v i`. -/
+
+example {m : ℕ} (v : Fin m → V) (a : Fin m → F) : V := ∑ i, a i • v i
+
+/-! 2.3 Example: linear combinations in {lit}`ℝ³`
+
+{lit}`(17, -4, 2) = 6 (2, 1, -3) + 5 (1, -2, 4)`, so it *is* a linear
+combination of {lit}`(2, 1, -3), (1, -2, 4)`. -/
+
+example : (![17, -4, 2] : Fin 3 → ℝ) =
+    (6 : ℝ) • (![2, 1, -3] : Fin 3 → ℝ) + (5 : ℝ) • (![1, -2, 4] : Fin 3 → ℝ) := by
+  funext i; fin_cases i <;> simp <;> ring
+
+/-! Conversely, {lit}`(17, -4, 5)` is *not* a linear combination of
+{lit}`(2, 1, -3), (1, -2, 4)`: the linear system has no solution. -/
+
+example : ¬ ∃ a b : ℝ,
+    (![17, -4, 5] : Fin 3 → ℝ) =
+      a • (![2, 1, -3] : Fin 3 → ℝ) + b • (![1, -2, 4] : Fin 3 → ℝ) := by
+  rintro ⟨a, b, h⟩
+  have h0 := congrFun h 0
+  have h1 := congrFun h 1
+  have h2 := congrFun h 2
+  simp at h0 h1 h2
+  linarith
+
+/-! 2.4 Definition: span
+
+The *span* of {lit}`v₁, …, vₘ` is the set of all linear combinations. In
+mathlib this is {name}`Submodule.span` applied to the range of {lit}`v`,
+which gives back a {name}`Submodule` (so its subspace structure is automatic). -/
+
+example {m : ℕ} (v : Fin m → V) : Submodule F V := Submodule.span F (Set.range v)
+
+/-! Membership recovers Axler's definition: {lit}`u ∈ span(v₁, …, vₘ)` iff
+{lit}`u = a₁ v₁ + ⋯ + aₘ vₘ` for some scalars. -/
+
+example {m : ℕ} (v : Fin m → V) (u : V) :
+    u ∈ Submodule.span F (Set.range v) ↔ ∃ a : Fin m → F, ∑ i, a i • v i = u :=
+  Submodule.mem_span_range_iff_exists_fun F
+
+/-! The span of the empty list is {lit}`{0}`. -/
+
+example : Submodule.span F (Set.range (![] : Fin 0 → V)) = ⊥ := by
+  simp
+
+/-! 2.5 Example: span -/
+
+example : (![17, -4, 2] : Fin 3 → ℝ) ∈
+    Submodule.span ℝ (Set.range (![![2, 1, -3], ![1, -2, 4]] : Fin 2 → Fin 3 → ℝ)) := by
+  rw [Submodule.mem_span_range_iff_exists_fun]
+  exact ⟨![6, 5], by funext i; fin_cases i <;> simp <;> ring⟩
+
+example : (![17, -4, 5] : Fin 3 → ℝ) ∉
+    Submodule.span ℝ (Set.range (![![2, 1, -3], ![1, -2, 4]] : Fin 2 → Fin 3 → ℝ)) := by
+  rw [Submodule.mem_span_range_iff_exists_fun]
+  rintro ⟨a, ha⟩
+  have h0 := congrFun ha 0
+  have h1 := congrFun ha 1
+  have h2 := congrFun ha 2
+  simp [Fin.sum_univ_two] at h0 h1 h2
+  linarith
+
+/-! 2.6 Span is the smallest containing subspace. mathlib's
+{name}`Submodule.span` already returns a {name}`Submodule`, and the universal
+property is encoded by {name}`Submodule.span_le`. -/
+
+example {m : ℕ} (v : Fin m → V) (k : Fin m) :
+    v k ∈ Submodule.span F (Set.range v) :=
+  Submodule.subset_span ⟨k, rfl⟩
+
+example {m : ℕ} (v : Fin m → V) (U : Submodule F V) (h : ∀ k, v k ∈ U) :
+    Submodule.span F (Set.range v) ≤ U :=
+  Submodule.span_le.mpr (Set.range_subset_iff.mpr h)
+
+/-! 2.7 Definition: spans
+
+A list *spans* {lit}`V` if its span is all of {lit}`V`. {lit}`F` is taken
+explicitly so call sites read {lit}`Spans F v` and Lean doesn't have to guess
+the scalar field from {lit}`v` alone. -/
+
+def Spans (F : Type*) {V : Type*} [Field F] [AddCommGroup V] [Module F V]
+    {m : ℕ} (v : Fin m → V) : Prop :=
+  Submodule.span F (Set.range v) = ⊤
+
+/-! 2.8 Example: a list that spans {lit}`Fⁿ`
+
+The standard basis {lit}`(1, 0, …, 0), (0, 1, …, 0), …, (0, …, 0, 1)` spans
+{lit}`Fⁿ`. -/
+
+example (n : ℕ) :
+    Spans F (fun k : Fin n => (Pi.single k (1 : F) : Fin n → F)) := by
+  rw [Spans, eq_top_iff]
+  intro v _
+  rw [Submodule.mem_span_range_iff_exists_fun]
+  refine ⟨v, ?_⟩
+  funext j
+  rw [Finset.sum_apply, Finset.sum_eq_single j]
+  · simp
+  · intro i _ hij
+    show v i • (Pi.single i (1 : F) : Fin n → F) j = 0
+    simp [hij.symm]
+  · intro h; exact absurd (Finset.mem_univ j) h
+
+/-! 2.9 Definition: finite-dimensional vector space
+
+A vector space is *finite-dimensional* if some list spans it. mathlib's
+{name}`Module.Finite` says equivalently that the top submodule is *finitely
+generated* — i.e. spanned by some finite set. -/
+
+example : Prop := Module.Finite F V
+
+/-! From a spanning list to {name}`Module.Finite`: package the (finite) range
+of {lit}`v` as the witnessing finset. {lit}`Classical` is opened locally so
+{name}`Set.toFinset` can convert {lit}`Set.range v` without an explicit
+{name}`DecidableEq` instance. -/
+
+example {m : ℕ} (v : Fin m → V) (h : Spans F v) : Module.Finite F V := by
+  classical
+  refine ⟨(Set.range v).toFinset, ?_⟩
+  rw [Spans] at h
+  rw [Set.coe_toFinset]; exact h
+
+example (n : ℕ) : Module.Finite F (Fin n → F) := inferInstance
+
+/-! 2.10 Definition: polynomial, {lit}`P(F)`
+
+A polynomial is a function {lit}`p : F → F` of the form
+{lit}`p(z) = a₀ + a₁ z + ⋯ + aₘ zᵐ`. In mathlib, polynomials are formal
+algebraic objects of type {name}`Polynomial`; the function {lit}`F → F` is
+recovered by {name}`Polynomial.eval` (often abbreviated {lit}`p.eval`). -/
+
+example : Type _ := Polynomial F
+
+example (p : Polynomial F) : F → F := fun z => p.eval z
+
+/-! {name}`Polynomial` is a vector space over {lit}`F`. -/
+
+noncomputable example : Module F (Polynomial F) := inferInstance
+
+/-! 2.11 Definition: degree of a polynomial
+
+mathlib's {name}`Polynomial.degree` lives in {lit}`WithBot ℕ`, where {lit}`⊥`
+plays the role of Axler's {lit}`-∞` (so the zero polynomial has degree
+{lit}`⊥`). -/
+
+example (p : Polynomial F) : WithBot ℕ := p.degree
+
+example : (0 : Polynomial F).degree = ⊥ := Polynomial.degree_zero
+
+/-! 2.12 Notation: {lit}`Pₘ(F)`
+
+{lit}`Pₘ(F)` is the subspace of polynomials of degree at most {lit}`m`. In
+mathlib this is {name}`Polynomial.degreeLT`, which collects polynomials of
+degree *strictly less than* {lit}`n`; Axler's {lit}`Pₘ(F)` is therefore
+{lit}`Polynomial.degreeLT F (m+1)`. -/
+
+noncomputable example (m : ℕ) : Submodule F (Polynomial F) :=
+  Polynomial.degreeLT F (m + 1)
+
+example (m : ℕ) (p : Polynomial F) :
+    p ∈ Polynomial.degreeLT F (m + 1) ↔ p.degree < (m + 1 : ℕ) :=
+  Polynomial.mem_degreeLT
+
+/-! {lit}`Pₘ(F)` is finite-dimensional: the linear equivalence
+{name}`Polynomial.degreeLTEquiv` to {lit}`Fin (m+1) → F` makes this immediate. -/
+
+example (m : ℕ) : Module.Finite F (Polynomial.degreeLT F (m + 1)) :=
+  Module.Finite.equiv (Polynomial.degreeLTEquiv F (m + 1)).symm
+
+/-! 2.13 Definition: infinite-dimensional vector space
+
+A vector space is *infinite-dimensional* if it is not finite-dimensional. -/
+
+example : Prop := ¬ Module.Finite F V
+
+/-! 2.14 Example: {lit}`P(F)` is infinite-dimensional. -/
+
+theorem polynomial_infiniteDimensional [Infinite F] :
+    ¬ Module.Finite F (Polynomial F) := by
+  -- Suppose, for contradiction, that {lit}`P(F)` is finite-dimensional.
+  -- Then some finite list spans it; let {lit}`m` be the largest degree
+  -- appearing in the list. Every linear combination has degree ≤ m, so
+  -- {lit}`X^(m+1)` cannot be in the span. But the span is all of {lit}`P(F)`.
+  intro hfin
+  obtain ⟨S, hS⟩ := hfin.fg_top
+  set m := S.sup Polynomial.natDegree with hm_def
+  have hbound : Submodule.span F (S : Set (Polynomial F)) ≤
+      Polynomial.degreeLT F (m + 1) := by
+    rw [Submodule.span_le]
+    intro p hp
+    rw [SetLike.mem_coe, Polynomial.mem_degreeLT]
+    have hp_deg : p.degree ≤ (m : WithBot ℕ) := by
+      by_cases hp0 : p = 0
+      · simp [hp0]
+      · rw [Polynomial.degree_eq_natDegree hp0]
+        exact_mod_cast Finset.le_sup hp
+    exact lt_of_le_of_lt hp_deg (by exact_mod_cast Nat.lt_succ_self m)
+  rw [hS] at hbound
+  have hX : (Polynomial.X : Polynomial F) ^ (m + 1) ∈
+      Polynomial.degreeLT F (m + 1) := hbound trivial
+  rw [Polynomial.mem_degreeLT, Polynomial.degree_X_pow] at hX
+  exact_mod_cast lt_irrefl _ hX
+
+/-! 2.15 Definition: linearly independent
+
+A list {lit}`v₁, …, vₘ` is *linearly independent* if the only choice of
+scalars making {lit}`a₁ v₁ + ⋯ + aₘ vₘ = 0` is {lit}`a₁ = ⋯ = aₘ = 0`. mathlib's
+{name}`LinearIndependent` packages this as injectivity of the linear-combination
+map; for finite index types {name}`Fintype.linearIndependent_iff` recovers the
+textbook formulation. -/
+
+example {m : ℕ} (v : Fin m → V) :
+    LinearIndependent F v ↔ ∀ a : Fin m → F, ∑ i, a i • v i = 0 → ∀ i, a i = 0 :=
+  Fintype.linearIndependent_iff
+
+/-! The empty list is linearly independent. -/
+
+example : LinearIndependent F (![] : Fin 0 → V) :=
+  linearIndependent_empty_type
+
+/-! 2.16 Example: linearly independent lists -/
+
+/-! (a) The standard list {lit}`(1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0)` is
+linearly independent in {lit}`F⁴`. -/
+
+example : LinearIndependent F
+    (![![1, 0, 0, 0], ![0, 1, 0, 0], ![0, 0, 1, 0]] : Fin 3 → Fin 4 → F) := by
+  rw [Fintype.linearIndependent_iff]
+  intro a ha
+  have h0 := congrFun ha 0
+  have h1 := congrFun ha 1
+  have h2 := congrFun ha 2
+  simp [Fin.sum_univ_three] at h0 h1 h2
+  intro i; fin_cases i <;> assumption
+
+/-! (b) {lit}`1, z, …, zᵐ` is linearly independent in {lit}`P(F)`. -/
+
+example (m : ℕ) [Infinite F] :
+    LinearIndependent F (fun i : Fin (m + 1) => (Polynomial.X (R := F)) ^ (i : ℕ)) := by
+  -- Suppose {lit}`a₀ • 1 + a₁ • X + ⋯ + aₘ • Xᵐ = 0`. Reading off the coefficient
+  -- of {lit}`Xⁱ` on the left forces {lit}`aᵢ = 0`.
+  rw [Fintype.linearIndependent_iff]
+  intro a ha i
+  have hi := congrArg (fun p : Polynomial F => p.coeff (i : ℕ)) ha
+  simp only [Polynomial.finset_sum_coeff, Polynomial.coeff_smul, smul_eq_mul,
+    Polynomial.coeff_X_pow, Polynomial.coeff_zero] at hi
+  rw [Finset.sum_eq_single i] at hi
+  · simpa using hi
+  · intro j _ hji
+    have hne : (i : ℕ) ≠ (j : ℕ) := fun h => hji (Fin.ext h.symm)
+    simp [hne]
+  · intro h; exact absurd (Finset.mem_univ i) h
+
+/-! (c) A length-1 list {lit}`v` is linearly independent iff {lit}`v ≠ 0`. -/
+
+example (v : V) : LinearIndependent F (![v] : Fin 1 → V) ↔ v ≠ 0 := by
+  rw [Fintype.linearIndependent_iff]
+  refine ⟨?_, ?_⟩
+  · intro h hv
+    have := h ![1] (by simp [hv]) 0
+    simp at this
+  · intro hv a ha i
+    fin_cases i
+    have h0 := ha
+    simp at h0
+    rcases h0 with h | h
+    · exact h
+    · exact absurd h hv
+
+/-! (d) A length-2 list is linearly independent iff neither vector is a scalar
+multiple of the other. (Stated, not proven, here.) -/
+
+example (v w : V) : LinearIndependent F (![v, w] : Fin 2 → V) ↔
+    (∀ a : F, w ≠ a • v) ∧ (∀ b : F, v ≠ b • w) := by
+  sorry
+
+/-! 2.17 Definition: linearly dependent
+
+A list is *linearly dependent* if it is not linearly independent. -/
+
+example {m : ℕ} (v : Fin m → V) : Prop := ¬ LinearIndependent F v
+
+/-! Concretely: there exist scalars not all zero summing to {lit}`0`. -/
+
+example {m : ℕ} (v : Fin m → V) :
+    ¬ LinearIndependent F v ↔ ∃ a : Fin m → F, (∑ i, a i • v i = 0) ∧ ∃ i, a i ≠ 0 := by
+  rw [Fintype.linearIndependent_iff]
+  push Not
+  rfl
+
+/-! 2.18 Example: linearly dependent lists -/
+
+example :
+    ¬ LinearIndependent ℝ (![![2, 3, 1], ![1, -1, 2], ![7, 3, 8]] : Fin 3 → Fin 3 → ℝ) := by
+  rw [Fintype.linearIndependent_iff]; push Not
+  refine ⟨![2, 3, -1], ?_, 0, by simp⟩
+  funext i; fin_cases i <;> simp [Fin.sum_univ_three] <;> ring
+
+/-! Any list containing the zero vector is linearly dependent. -/
+
+example {m : ℕ} (v : Fin m → V) (k : Fin m) (hk : v k = 0) :
+    ¬ LinearIndependent F v := by
+  rw [Fintype.linearIndependent_iff]; push Not
+  refine ⟨Pi.single k (1 : F), ?_, k, by simp⟩
+  rw [Finset.sum_eq_single k]
+  · simp [hk]
+  · intro i _ hik; simp [Pi.single_eq_of_ne hik]
+  · intro h; exact absurd (Finset.mem_univ k) h
+
+/-! 2.19 Linear dependence lemma
+
+If {lit}`v₁, …, vₘ` is linearly dependent, then some {lit}`v_k` lies in the
+span of the previous ones; furthermore the span is unchanged when {lit}`v_k`
+is removed. -/
+
+theorem linearDependence_lemma {m : ℕ} (v : Fin m → V) (h : ¬ LinearIndependent F v) :
+    ∃ k : Fin m, v k ∈ Submodule.span F (v '' {i | i < k}) ∧
+      Submodule.span F (Set.range v) =
+        Submodule.span F (v '' {i | i ≠ k}) := by
+  -- From a nontrivial dependence {lit}`∑ a i • v i = 0`, take {lit}`k` to be the
+  -- *largest* index with {lit}`a k ≠ 0`. All later coefficients vanish, so
+  -- {lit}`a k • v k + ∑_{i<k} a i • v i = 0`. Solving for {lit}`v k` exhibits
+  -- it as a linear combination of the earlier {lit}`v i`'s. Removing
+  -- {lit}`v k` therefore preserves the span.
+  classical
+  rw [Fintype.linearIndependent_iff] at h
+  push Not at h
+  obtain ⟨a, hsum, j, haj⟩ := h
+  -- Let {lit}`k` be the largest index with {lit}`a k ≠ 0`.
+  let S : Finset (Fin m) := Finset.univ.filter (fun i => a i ≠ 0)
+  have hSne : S.Nonempty :=
+    ⟨j, Finset.mem_filter.mpr ⟨Finset.mem_univ j, haj⟩⟩
+  let k := S.max' hSne
+  have hak : a k ≠ 0 := (Finset.mem_filter.mp (S.max'_mem hSne)).2
+  have hkmax : ∀ i : Fin m, k < i → a i = 0 := by
+    intro i hki
+    by_contra hai
+    have hiS : i ∈ S := Finset.mem_filter.mpr ⟨Finset.mem_univ _, hai⟩
+    exact absurd hki (not_lt.mpr (S.le_max' i hiS))
+  set M : Submodule F V := Submodule.span F (v '' {i : Fin m | i < k}) with hM_def
+  -- Splitting {lit}`univ = {k} ∪ (univ.filter (· < k)) ∪ (univ.filter (k < ·))`
+  -- and using {lit}`a i = 0` for {lit}`i > k`, we get
+  -- {lit}`a k • v k + ∑_{i<k} a i • v i = 0`.
+  have hdisj : Disjoint
+      (Finset.univ.filter (· < k : Fin m → Prop))
+      (Finset.univ.filter (k < ·)) := by
+    rw [Finset.disjoint_filter]
+    intros i _ hi hki; exact lt_asymm hki hi
+  have hgt_zero : ∑ i ∈ Finset.univ.filter (k < ·), a i • v i = 0 := by
+    apply Finset.sum_eq_zero
+    intros i hi
+    rw [Finset.mem_filter] at hi
+    rw [hkmax i hi.2, zero_smul]
+  have hfilter_split : (Finset.univ : Finset (Fin m)).erase k =
+      (Finset.univ.filter (· < k)) ∪ (Finset.univ.filter (k < ·)) := by
+    ext i
+    simp only [Finset.mem_erase, Finset.mem_union, Finset.mem_filter, Finset.mem_univ,
+      true_and, and_true]
+    exact ⟨fun h => lt_or_gt_of_ne h, fun h => h.elim ne_of_lt (fun h => (ne_of_lt h).symm)⟩
+  have hsum_split : a k • v k +
+      ∑ i ∈ Finset.univ.filter (· < k : Fin m → Prop), a i • v i = 0 := by
+    have h1 := Finset.add_sum_erase Finset.univ (fun i => a i • v i) (Finset.mem_univ k)
+    rw [hsum] at h1
+    rw [hfilter_split, Finset.sum_union hdisj, hgt_zero, add_zero] at h1
+    exact h1
+  -- Membership: {lit}`v k ∈ M`.
+  have hsmall_in_M : ∑ i ∈ Finset.univ.filter (· < k : Fin m → Prop),
+      a i • v i ∈ M := by
+    refine Submodule.sum_mem _ ?_
+    intro i hi
+    rw [Finset.mem_filter] at hi
+    exact M.smul_mem _ (Submodule.subset_span ⟨i, hi.2, rfl⟩)
+  have hak_vk : a k • v k ∈ M := by
+    have heq : a k • v k =
+        -(∑ i ∈ Finset.univ.filter (· < k : Fin m → Prop), a i • v i) :=
+      eq_neg_of_add_eq_zero_left hsum_split
+    rw [heq]; exact M.neg_mem hsmall_in_M
+  have hvk : v k ∈ M := by
+    have : v k = (a k)⁻¹ • (a k • v k) := by
+      rw [smul_smul, inv_mul_cancel₀ hak, one_smul]
+    rw [this]; exact M.smul_mem _ hak_vk
+  refine ⟨k, hvk, ?_⟩
+  -- Span equality: removing {lit}`v k` does not shrink the span.
+  apply le_antisymm
+  · rw [Submodule.span_le]
+    rintro x ⟨i, rfl⟩
+    by_cases hik : i = k
+    · subst hik
+      have hsub : v '' {i : Fin m | i < k} ⊆ v '' {i : Fin m | i ≠ k} :=
+        Set.image_mono fun _ hi => ne_of_lt hi
+      exact Submodule.span_mono hsub hvk
+    · exact Submodule.subset_span ⟨i, hik, rfl⟩
+  · exact Submodule.span_mono (Set.image_subset_range _ _)
+
+/-! 2.21 Example: smallest k in linear dependence lemma
+
+For {lit}`(1, 2, 3), (6, 5, 4), (15, 16, 17), (8, 9, 7)` in {lit}`ℝ³`, the
+smallest {lit}`k` that works is {lit}`k = 3` (the third vector lies in the
+span of the first two), since the second vector is *not* a scalar multiple of
+the first. -/
+
+example :
+    (![15, 16, 17] : Fin 3 → ℝ) ∈
+      Submodule.span ℝ (Set.range (![![1, 2, 3], ![6, 5, 4]] : Fin 2 → Fin 3 → ℝ)) := by
+  rw [Submodule.mem_span_range_iff_exists_fun]
+  -- 15 = 1·a + 6·b, 16 = 2·a + 5·b, 17 = 3·a + 4·b ⟹ a = 3, b = 2
+  refine ⟨![3, 2], ?_⟩
+  funext i; fin_cases i <;> simp <;> ring
+
+/-! 2.22 Length of linearly independent list ≤ length of spanning list
+
+In a finite-dimensional vector space, the length of every linearly independent
+list of vectors is at most the length of every spanning list. -/
+
+theorem linearIndependent_le_spanning {m n : ℕ} (u : Fin m → V) (w : Fin n → V)
+    (hu : LinearIndependent F u) (hw : Spans F w) : m ≤ n := by
+  -- Axler's "swap one u for one w" argument: by induction on {lit}`k`, build a
+  -- length-{lit}`n` list still spanning {lit}`V` whose first {lit}`k` entries
+  -- are {lit}`u 0, …, u_{k-1}`. Each step uses 2.19 to swap a fresh {lit}`u k`
+  -- in for some {lit}`w j` (the swap must hit a {lit}`w`, since the
+  -- {lit}`u`-prefix is still linearly independent). Taking {lit}`k = m`
+  -- forces {lit}`m ≤ n`.
+  classical
+  suffices H : ∀ k, k ≤ m → ∃ T : Finset (Fin n),
+      T.card + k = n ∧
+      Submodule.span F ((u '' {i : Fin m | i.val < k}) ∪
+        (w '' (T : Set (Fin n)))) = ⊤ by
+    obtain ⟨T, hTc, _⟩ := H m le_rfl
+    omega
+  intro k
+  induction k with
+  | zero =>
+    intro _
+    refine ⟨Finset.univ, by simp, ?_⟩
+    have hempty : {i : Fin m | i.val < 0} = ∅ := by ext; simp
+    rw [hempty, Set.image_empty, Set.empty_union, Finset.coe_univ, Set.image_univ]
+    exact hw
+  | succ k ih =>
+    intro hk1m
+    have hkm : k < m := hk1m
+    obtain ⟨T, hTcard, hTspan⟩ := ih (Nat.le_of_succ_le hk1m)
+    have hkn : k ≤ n := by omega
+    -- Enumerator of {lit}`T` in order, and the list
+    -- {lit}`L = (u 0, …, u k, w_{j_1}, …, w_{j_{T.card}})` of length {lit}`n+1`.
+    let r : Fin T.card ↪o Fin n := T.orderEmbOfFin rfl
+    have hr_range : Set.range ⇑r = (↑T : Set (Fin n)) :=
+      Finset.range_orderEmbOfFin T rfl
+    let L : Fin (n + 1) → V := fun i =>
+      if hi : (i : ℕ) ≤ k then u ⟨i, by have := i.isLt; omega⟩
+      else w (r ⟨i - (k + 1), by have := i.isLt; omega⟩)
+    have hLu : ∀ (i : ℕ) (hi : i < n + 1) (hi' : i ≤ k),
+        L ⟨i, hi⟩ = u ⟨i, by omega⟩ := by
+      intros i _ hi'; exact dif_pos hi'
+    have hLw : ∀ (i : ℕ) (hi : i < n + 1) (hi' : k + 1 ≤ i),
+        L ⟨i, hi⟩ = w (r ⟨i - (k + 1), by omega⟩) := by
+      intros i _ hi'
+      have hnot : ¬ i ≤ k := by omega
+      exact dif_neg hnot
+    -- {lit}`u_k` sits at position {lit}`k` of {lit}`L`.
+    let pos_k : Fin (n + 1) := ⟨k, by omega⟩
+    let pos_k_m : Fin m := ⟨k, hkm⟩
+    have hL_pos_k : L pos_k = u pos_k_m := hLu k (by omega) le_rfl
+    -- Inclusion: the IH spanning set lies inside {lit}`L`'s image off
+    -- position {lit}`pos_k`.
+    have hWk_sub : (u '' {i : Fin m | i.val < k}) ∪ (w '' (T : Set (Fin n))) ⊆
+        L '' ({pos_k}ᶜ : Set (Fin (n + 1))) := by
+      rintro x (⟨i, hi, rfl⟩ | ⟨j, hjT, rfl⟩)
+      · -- {lit}`x = u i` with {lit}`i.val < k`
+        have hik : i.val < k := hi
+        refine ⟨⟨i.val, by omega⟩, ?_, ?_⟩
+        · intro h
+          have : i.val = k := by simpa [pos_k] using congrArg Fin.val h
+          omega
+        · rw [hLu i.val (by omega) (by omega)]
+      · -- {lit}`x = w j` with {lit}`j ∈ T`
+        have hj_range : j ∈ Set.range ⇑r := by rw [hr_range]; exact hjT
+        obtain ⟨idx, hidx⟩ := hj_range
+        have hidxLt : idx.val < T.card := idx.isLt
+        refine ⟨⟨k + 1 + idx.val, by omega⟩, ?_, ?_⟩
+        · intro h
+          have : k + 1 + idx.val = k := by simpa [pos_k] using congrArg Fin.val h
+          omega
+        · rw [hLw _ (by omega) (by omega)]
+          have hreduce : (⟨k + 1 + idx.val - (k + 1), by omega⟩ : Fin T.card) = idx := by
+            apply Fin.ext; show k + 1 + idx.val - (k + 1) = idx.val; omega
+          rw [hreduce, hidx]
+    -- {lit}`u_k = L pos_k` is in {lit}`span(L '' {pos_k}ᶜ)`.
+    have hL_pos_k_in : L pos_k ∈ Submodule.span F (L '' ({pos_k}ᶜ)) := by
+      rw [hL_pos_k]
+      have : u pos_k_m ∈ (⊤ : Submodule F V) := trivial
+      rw [← hTspan] at this
+      exact (Submodule.span_mono hWk_sub) this
+    -- {lit}`L` is linearly dependent.
+    have hLdep : ¬ LinearIndependent F L := fun hLind =>
+      hLind.notMem_span pos_k hL_pos_k_in
+    -- 2.19 applied to {lit}`L`.
+    obtain ⟨p, hp_in_span, hL_span_eq⟩ := linearDependence_lemma L hLdep
+    -- {lit}`p > k`: a {lit}`u`-position would force {lit}`u_p ∈ span(u_{<p})`,
+    -- contradicting linear independence of {lit}`u`.
+    have hp_gt : k < p.val := by
+      by_contra hpk
+      push Not at hpk
+      let p_m : Fin m := ⟨p.val, by omega⟩
+      have hL_p : L p = u p_m := hLu p.val p.isLt hpk
+      have h_lt_sub : L '' {q : Fin (n + 1) | q < p} ⊆ u '' ({p_m}ᶜ) := by
+        rintro x ⟨q, hq, rfl⟩
+        have hqp : q.val < p.val := hq
+        rw [hLu q.val q.isLt (by omega)]
+        refine ⟨⟨q.val, by omega⟩, ?_, rfl⟩
+        intro h
+        have : q.val = p.val := by simpa [p_m] using congrArg Fin.val h
+        omega
+      have hu_p_in : u p_m ∈ Submodule.span F (u '' ({p_m}ᶜ)) := by
+        rw [← hL_p]; exact (Submodule.span_mono h_lt_sub) hp_in_span
+      exact hu.notMem_span p_m hu_p_in
+    -- {lit}`p ≥ k+1`, so {lit}`L p = w j` for the {lit}`p-(k+1)`-th element of {lit}`T`.
+    have hp_lower : k + 1 ≤ p.val := hp_gt
+    let q : Fin T.card := ⟨p.val - (k + 1), by have := p.isLt; omega⟩
+    let j : Fin n := r q
+    have hL_p_eq : L p = w j := hLw p.val p.isLt hp_lower
+    have hj_in_T : j ∈ T := by
+      have : j ∈ Set.range ⇑r := ⟨q, rfl⟩
+      rw [hr_range] at this; exact this
+    -- New finset: drop {lit}`j`.
+    let T' : Finset (Fin n) := T.erase j
+    refine ⟨T', ?_, ?_⟩
+    · simp only [T']; rw [Finset.card_erase_of_mem hj_in_T]; omega
+    -- {lit}`L '' {p}ᶜ = (u '' {<k+1}) ∪ (w '' T')`.
+    have h_pre_eq : L '' ({p}ᶜ : Set (Fin (n + 1))) =
+        (u '' {i : Fin m | i.val < k + 1}) ∪
+          (w '' (T' : Set (Fin n))) := by
+      ext x
+      constructor
+      · rintro ⟨i, hi_ne, rfl⟩
+        by_cases hi_le : i.val ≤ k
+        · -- {lit}`u`-position
+          left
+          rw [hLu i.val i.isLt hi_le]
+          exact ⟨⟨i.val, by omega⟩, by simpa, rfl⟩
+        · -- {lit}`w`-position; show the resulting {lit}`w`-index lies in {lit}`T'`.
+          push Not at hi_le
+          right
+          rw [hLw i.val i.isLt hi_le]
+          refine ⟨_, ?_, rfl⟩
+          simp only [T', Finset.coe_erase, Set.mem_diff, Set.mem_singleton_iff]
+          refine ⟨?_, ?_⟩
+          · have : r ⟨i.val - (k + 1), by have := i.isLt; omega⟩ ∈ Set.range ⇑r :=
+              ⟨_, rfl⟩
+            rwa [hr_range] at this
+          · intro hrj
+            apply hi_ne
+            have hidx_eq : (⟨i.val - (k + 1), by have := i.isLt; omega⟩ : Fin T.card) = q :=
+              r.injective hrj
+            have h_val : i.val - (k + 1) = q.val := congrArg Fin.val hidx_eq
+            have h_q : q.val = p.val - (k + 1) := rfl
+            apply Fin.ext
+            show i.val = p.val
+            omega
+      · rintro (⟨i, hi, rfl⟩ | ⟨j', hj'T', rfl⟩)
+        · have hi_lt : i.val < k + 1 := hi
+          refine ⟨⟨i.val, by have := i.isLt; omega⟩, ?_, ?_⟩
+          · intro h
+            have : i.val = p.val := by simpa using congrArg Fin.val h
+            omega
+          · rw [hLu i.val (by have := i.isLt; omega) (by omega)]
+        · -- {lit}`j' ∈ T'` so {lit}`j' ∈ T` and {lit}`j' ≠ j`.
+          simp only [T', Finset.coe_erase, Set.mem_diff, Set.mem_singleton_iff] at hj'T'
+          obtain ⟨hj'_T, hj'_ne⟩ := hj'T'
+          have h_range : j' ∈ Set.range ⇑r := by rw [hr_range]; exact hj'_T
+          obtain ⟨idx', hidx'⟩ := h_range
+          have hidxLt : idx'.val < T.card := idx'.isLt
+          refine ⟨⟨k + 1 + idx'.val, by omega⟩, ?_, ?_⟩
+          · intro h
+            apply hj'_ne
+            have hsum_eq : k + 1 + idx'.val = p.val := by
+              simpa using congrArg Fin.val h
+            have hidx_q : idx' = q := by
+              apply Fin.ext
+              show idx'.val = p.val - (k + 1)
+              omega
+            rw [← hidx', hidx_q]
+          · rw [hLw (k + 1 + idx'.val) (by omega) (by omega)]
+            have hreduce : (⟨k + 1 + idx'.val - (k + 1), by omega⟩ : Fin T.card) = idx' := by
+              apply Fin.ext; show k + 1 + idx'.val - (k + 1) = idx'.val; omega
+            rw [hreduce, hidx']
+    -- {lit}`range L` spans {lit}`V` (it contains the IH spanning set).
+    have h_range_top : Submodule.span F (Set.range L) = ⊤ := by
+      rw [eq_top_iff, ← hTspan]
+      apply Submodule.span_mono
+      rintro x (⟨i, hi, rfl⟩ | ⟨j', hj'T, rfl⟩)
+      · have hik : i.val < k := hi
+        refine ⟨⟨i.val, by have := i.isLt; omega⟩, ?_⟩
+        rw [hLu i.val (by have := i.isLt; omega) (by omega)]
+      · have h_range : j' ∈ Set.range ⇑r := by rw [hr_range]; exact hj'T
+        obtain ⟨idx', hidx'⟩ := h_range
+        have hidxLt : idx'.val < T.card := idx'.isLt
+        refine ⟨⟨k + 1 + idx'.val, by omega⟩, ?_⟩
+        rw [hLw (k + 1 + idx'.val) (by omega) (by omega)]
+        have hreduce : (⟨k + 1 + idx'.val - (k + 1), by omega⟩ : Fin T.card) = idx' := by
+          apply Fin.ext; show k + 1 + idx'.val - (k + 1) = idx'.val; omega
+        rw [hreduce, hidx']
+    -- Combine: {lit}`L '' {q | q ≠ p} = L '' {p}ᶜ` (defeq), then
+    -- 2.19 turns {lit}`span(L '' {p}ᶜ) = span(range L) = ⊤`.
+    have h_compl : ({q : Fin (n + 1) | q ≠ p} : Set _) = ({p}ᶜ : Set _) := rfl
+    rw [← h_pre_eq, ← h_compl, ← hL_span_eq, h_range_top]
+
+/-! 2.23 Example: no list of length 4 is linearly independent in {lit}`ℝ³` -/
+
+example : ¬ LinearIndependent ℝ
+    (![![1, 2, 3], ![4, 5, 8], ![9, 6, 7], ![-3, 2, 8]] : Fin 4 → Fin 3 → ℝ) := by
+  intro h
+  have hspan : Spans ℝ (![![1, 0, 0], ![0, 1, 0], ![0, 0, 1]] : Fin 3 → Fin 3 → ℝ) := by
+    rw [Spans, eq_top_iff]
+    intro v _
+    rw [Submodule.mem_span_range_iff_exists_fun]
+    refine ⟨v, ?_⟩
+    funext i; fin_cases i <;> simp [Fin.sum_univ_three]
+  exact absurd (linearIndependent_le_spanning _ _ h hspan) (by decide)
+
+/-! 2.24 Example: no list of length 3 spans {lit}`ℝ⁴` -/
+
+example : ¬ Spans ℝ
+    (![![1, 2, 3, -5], ![4, 5, 8, 3], ![9, 6, 7, -1]] : Fin 3 → Fin 4 → ℝ) := by
+  intro h
+  have hli : LinearIndependent ℝ
+      (![![1, 0, 0, 0], ![0, 1, 0, 0], ![0, 0, 1, 0], ![0, 0, 0, 1]]
+        : Fin 4 → Fin 4 → ℝ) := by
+    rw [Fintype.linearIndependent_iff]
+    intro a ha
+    have h0 := congrFun ha 0
+    have h1 := congrFun ha 1
+    have h2 := congrFun ha 2
+    have h3 := congrFun ha 3
+    simp [Fin.sum_univ_four] at h0 h1 h2 h3
+    intro i; fin_cases i <;> assumption
+  exact absurd (linearIndependent_le_spanning _ _ hli h) (by decide)
+
+/-! 2.25 Finite-dimensional subspaces
+
+Every subspace of a finite-dimensional vector space is finite-dimensional.
+mathlib provides this as an instance ({name}`FiniteDimensional.finiteDimensional_submodule`): -/
+
+example (U : Submodule F V) [FiniteDimensional F V] : FiniteDimensional F U :=
+  inferInstance
+
+/-! # Exercises -/
+
+/-- 2A.1 -/
+theorem exercise_2A_1 :
+    ∃ v : Fin 4 → (Fin 3 → F),
+      Function.Injective v ∧
+      (Submodule.span F (Set.range v) : Set (Fin 3 → F)) = {x | x 0 + x 1 + x 2 = 0} := by
+  sorry
+
+/-- 2A.2 -/
+@[avoiding Submodule.span_mono]
+theorem exercise_2A_2 {m : ℕ} (v : Fin m → V) (hv : Spans F v) :
+    Spans F (fun i : Fin m =>
+      if h : (i : ℕ) + 1 < m then v i - v ⟨(i : ℕ) + 1, h⟩ else v i) := by
+  sorry
+
+/-- 2A.3 -/
+theorem exercise_2A_3 {m : ℕ} (v : Fin m → V) :
+    Submodule.span F (Set.range v) =
+      Submodule.span F (Set.range (fun k : Fin m => ∑ i : Fin (k + 1), v ⟨i, by omega⟩)) := by
+  sorry
+
+/-- 2A.4(a) -/
+theorem exercise_2A_4a (v : V) : LinearIndependent F (![v] : Fin 1 → V) ↔ v ≠ 0 := by
+  sorry
+
+/-- 2A.4(b) -/
+theorem exercise_2A_4b (v w : V) : LinearIndependent F (![v, w] : Fin 2 → V) ↔
+    (∀ a : F, w ≠ a • v) ∧ (∀ b : F, v ≠ b • w) := by
+  sorry
+
+/-- 2A.5 Find {lit}`t ∈ ℝ` such that the list is *not* linearly independent. -/
+theorem exercise_2A_5 :
+    ∃ t : ℝ, ¬ LinearIndependent ℝ
+      (![![3, 1, 4], ![2, -3, 5], ![5, 9, t]] : Fin 3 → Fin 3 → ℝ) := by
+  sorry
+
+/-- 2A.6 -/
+theorem exercise_2A_6 (c : F) :
+    ¬ LinearIndependent F (![![2, 3, 1], ![1, -1, 2], ![7, 3, c]] : Fin 3 → Fin 3 → F) ↔
+      c = 8 := by
+  sorry
+
+/-- 2A.7(a) Over {lit}`ℝ`, the list {lit}`1+i, 1-i` is linearly independent in
+{lit}`ℂ` (viewed as an {lit}`ℝ`-vector space). -/
+theorem exercise_2A_7a :
+    LinearIndependent ℝ (![(1 + Complex.I), (1 - Complex.I)] : Fin 2 → ℂ) := by
+  sorry
+
+/-- 2A.7(b) Over {lit}`ℂ`, the same list is linearly dependent. -/
+theorem exercise_2A_7b :
+    ¬ LinearIndependent ℂ (![(1 + Complex.I), (1 - Complex.I)] : Fin 2 → ℂ) := by
+  sorry
+
+/-- 2A.8 -/
+theorem exercise_2A_8 (v : Fin 4 → V) (h : LinearIndependent F v) :
+    LinearIndependent F (![v 0 - v 1, v 1 - v 2, v 2 - v 3, v 3] : Fin 4 → V) := by
+  sorry
+
+/-- 2A.9 -/
+def exercise_2A_9 :
+    Decidable (∀ {m : ℕ} (v : Fin (m + 1) → V) (_ : LinearIndependent F v),
+      LinearIndependent F (Function.update v 0 ((5 : F) • v 0 - (4 : F) • v 1))) := by
+  -- first line should be `apply isTrue` or `apply isFalse`
+  sorry
+
+/-- 2A.10 -/
+def exercise_2A_10 :
+    Decidable (∀ {m : ℕ} (v : Fin m → V) (lam : F) (_ : lam ≠ 0)
+      (_ : LinearIndependent F v), LinearIndependent F (fun i => lam • v i)) := by
+  -- first line should be `apply isTrue` or `apply isFalse`
+  sorry
+
+/-- 2A.11 *Prove or counterexample.* If {lit}`v₁, …, vₘ` and {lit}`w₁, …, wₘ`
+are linearly independent, is {lit}`v₁ + w₁, …, vₘ + wₘ` linearly independent? -/
+def exercise_2A_11 :
+    Decidable (∀ {m : ℕ} (v w : Fin m → V),
+      LinearIndependent F v → LinearIndependent F w →
+      LinearIndependent F (fun i => v i + w i)) := by
+  -- first line should be `apply isTrue` or `apply isFalse`
+  sorry
+
+/-- 2A.12 -/
+theorem exercise_2A_12 {m : ℕ} (v : Fin m → V) (w : V)
+    (hv : LinearIndependent F v)
+    (hdep : ¬ LinearIndependent F (Fin.snoc v w : Fin (m + 1) → V)) :
+    w ∈ Submodule.span F (Set.range v) := by
+  sorry
+
+/-- 2A.13 -/
+theorem exercise_2A_13 {m : ℕ} (v : Fin m → V) (w : V) (hv : LinearIndependent F v) :
+    LinearIndependent F (Fin.snoc v w : Fin (m + 1) → V) ↔
+      w ∉ Submodule.span F (Set.range v) := by
+  sorry
+
+/-- 2A.14 -/
+theorem exercise_2A_14 {m : ℕ} (v : Fin m → V) :
+    LinearIndependent F v ↔
+      LinearIndependent F (fun k : Fin m => ∑ i : Fin (k + 1), v ⟨i, by omega⟩) := by
+  sorry
+
+/-- 2A.15 -/
+theorem exercise_2A_15 :
+    ¬ ∃ v : Fin 6 → Polynomial.degreeLT ℝ 5, LinearIndependent ℝ v := by
+  sorry
+
+/-- 2A.16 -/
+theorem exercise_2A_16 :
+    ¬ ∃ v : Fin 4 → Polynomial.degreeLT ℝ 5,
+      Submodule.span ℝ (Set.range v) = ⊤ := by
+  sorry
+
+/-- 2A.17 -/
+theorem exercise_2A_17 :
+    ¬ Module.Finite F V ↔
+      ∃ v : ℕ → V, ∀ m : ℕ, LinearIndependent F (fun i : Fin m => v i) := by
+  sorry
+
+/-- 2A.18 {lit}`F^∞` is infinite-dimensional. -/
+theorem exercise_2A_18 : ¬ Module.Finite F (ℕ → F) := by
+  sorry
+
+/-- 2A.19 The real vector space of all continuous real-valued functions on
+{lit}`[0, 1]` is infinite-dimensional. We follow the convention of 1.35(b)
+and use {lit}`C(ℝ, ℝ)` (continuous functions on all of {lit}`ℝ`); the same
+argument works on {lit}`C(Set.Icc 0 1, ℝ)`. -/
+theorem exercise_2A_19 :
+    ¬ Module.Finite ℝ C(ℝ, ℝ) := by
+  sorry
+
+/-- 2A.20 -/
+theorem exercise_2A_20 (m : ℕ) (p : Fin (m + 1) → Polynomial.degreeLT F (m + 1))
+    (h : ∀ k, ((p k : Polynomial F).eval 2) = 0) :
+    ¬ LinearIndependent F p := by
+  sorry
+
+end LADR.Section_2A
