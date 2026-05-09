@@ -2,6 +2,7 @@ import LinearAlgebraDoneRightLean.Section_1A
 import LinearAlgebraDoneRightLean.Section_1B
 import LinearAlgebraDoneRightLean.Section_1C
 import LinearAlgebraDoneRightLean.Section_2A
+import LinearAlgebraDoneRightLean.Section_2B
 
 /-!
 # Lean Companion to Axler's *Linear Algebra Done Right* (4e)
@@ -22,4 +23,5 @@ point of an exercise, the exercise is marked with {lit}`@[avoiding …]` from
 - {module}`LinearAlgebraDoneRightLean.Section_1B` — Definition of vector space
 - {module}`LinearAlgebraDoneRightLean.Section_1C` — Subspaces
 - {module}`LinearAlgebraDoneRightLean.Section_2A` — Span and Linear Independence
+- {module}`LinearAlgebraDoneRightLean.Section_2B` — Bases
 -/
