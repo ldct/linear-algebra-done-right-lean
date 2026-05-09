@@ -13,7 +13,9 @@ import Mathlib.LinearAlgebra.Span.Basic
 import Mathlib.LinearAlgebra.Span.Defs
 import Mathlib.RingTheory.Finiteness.Defs
 import Mathlib.RingTheory.Polynomial.Basic
+import Mathlib.LinearAlgebra.Basis.VectorSpace
 import Mathlib.Tactic.Linarith
+import Mathlib.Tactic.LinearCombination
 import Mathlib.Tactic.Linter.Style
 import Mathlib.Tactic.Recall
 import Mathlib.Tactic.Ring
@@ -46,7 +48,30 @@ def IsBasis (F : Type*) {V : Type*} [Field F] [AddCommGroup V] [Module F V]
 
 example (n : ℕ) :
     IsBasis F (fun k : Fin n => (Pi.single k (1 : F) : Fin n → F)) := by
-  sorry
+  refine ⟨?_, ?_⟩
+  · -- Linear independence: read off coefficient {lit}`j` from the equation.
+    rw [Fintype.linearIndependent_iff]
+    intro a ha j
+    have hj := congrFun ha j
+    simp only [Pi.zero_apply, Finset.sum_apply, Pi.smul_apply, smul_eq_mul,
+      Pi.single_apply] at hj
+    rw [Finset.sum_eq_single j] at hj
+    · simpa using hj
+    · intros i _ hij
+      rw [if_neg (fun h => hij h.symm)]; ring
+    · intro h; exact absurd (Finset.mem_univ j) h
+  · -- Spanning: any {lit}`v ∈ Fⁿ` is {lit}`∑ v i • eᵢ` (cf. 2.8).
+    rw [Spans, eq_top_iff]
+    intro v _
+    rw [Submodule.mem_span_range_iff_exists_fun]
+    refine ⟨v, ?_⟩
+    funext j
+    rw [Finset.sum_apply, Finset.sum_eq_single j]
+    · simp
+    · intros i _ hij
+      show v i • (Pi.single i (1 : F) : Fin n → F) j = 0
+      simp [hij.symm]
+    · intro h; exact absurd (Finset.mem_univ j) h
 
 /-! (b) The list {lit}`(1, 2), (3, 5)` is a basis of {lit}`F²`. Note its
 length is 2, the same as the length of the standard basis of {lit}`F²`; this
@@ -143,7 +168,37 @@ written *uniquely* as {lit}`v = a₁ v₁ + ⋯ + aₙ vₙ` with {lit}`aᵢ ∈
 
 theorem isBasis_iff_unique_combo {m : ℕ} (v : Fin m → V) :
     IsBasis F v ↔ ∀ u : V, ∃! a : Fin m → F, ∑ i, a i • v i = u := by
-  sorry
+  refine ⟨?_, ?_⟩
+  · rintro ⟨hli, hspan⟩ u
+    -- Existence: any {lit}`u` lies in the span, hence equals {lit}`∑ a i • v i`.
+    have hu_in : u ∈ Submodule.span F (Set.range v) := by
+      rw [hspan]; exact Submodule.mem_top
+    rw [Submodule.mem_span_range_iff_exists_fun] at hu_in
+    obtain ⟨a, ha⟩ := hu_in
+    refine ⟨a, ha, ?_⟩
+    -- Uniqueness: from {lit}`∑ a • v = u = ∑ b • v`, subtracting gives
+    -- {lit}`∑ (a - b) • v = 0`; linear independence forces {lit}`a = b`.
+    intro b hb
+    rw [Fintype.linearIndependent_iff] at hli
+    have h_diff : ∑ i, (b i - a i) • v i = 0 := by
+      simp_rw [sub_smul]; rw [Finset.sum_sub_distrib, hb, ha, sub_self]
+    have h_zero := hli (fun i => b i - a i) h_diff
+    funext i; exact sub_eq_zero.mp (h_zero i)
+  · intro huniq
+    refine ⟨?_, ?_⟩
+    · -- Linear independence: the unique representative of {lit}`0` is the
+      -- zero coefficient sequence.
+      rw [Fintype.linearIndependent_iff]
+      intro a ha
+      have h0 : ∑ i : Fin m, (0 : F) • v i = 0 := by simp
+      have ha_eq : a = (fun _ => 0) := (huniq 0).unique ha h0
+      intro i; exact congrFun ha_eq i
+    · -- Spanning: existence of a representation gives membership in span.
+      rw [Spans, eq_top_iff]
+      intro u _
+      rw [Submodule.mem_span_range_iff_exists_fun]
+      obtain ⟨a, ha, _⟩ := huniq u
+      exact ⟨a, ha⟩
 
 /-! 2.30 Every spanning list contains a basis
 
@@ -152,7 +207,29 @@ the rule "drop {lit}`vₖ` if it lies in the span of {lit}`v₁, …, v_{k-1}`".
 
 theorem exists_basis_of_spans {m : ℕ} (v : Fin m → V) (hv : Spans F v) :
     ∃ (n : ℕ) (vs : Fin n → V), IsBasis F vs ∧ Set.range vs ⊆ Set.range v := by
-  sorry
+  -- Mathlib's {name}`exists_linearIndependent` packages Axler's iterative
+  -- "drop {lit}`vₖ` if it's in the span of the previous": from the spanning
+  -- set {lit}`Set.range v`, extract a linearly independent subset
+  -- {lit}`b ⊆ Set.range v` with the same span.
+  classical
+  rw [Spans] at hv
+  obtain ⟨b, hb_subset, hb_span, hb_li⟩ := exists_linearIndependent F (Set.range v)
+  rw [hv] at hb_span
+  have hb_fin : b.Finite := (Set.finite_range v).subset hb_subset
+  haveI : Fintype b := hb_fin.fintype
+  let n := Fintype.card b
+  let e : Fin n ≃ b := (Fintype.equivFin b).symm
+  refine ⟨n, fun i => (e i : V), ⟨?_, ?_⟩, ?_⟩
+  · -- Reindex the {lit}`b`-indexed lin-indep family by the bijection.
+    exact hb_li.comp e e.injective
+  · rw [Spans, eq_top_iff, ← hb_span]
+    apply Submodule.span_mono
+    intro x hx
+    refine ⟨e.symm ⟨x, hx⟩, ?_⟩
+    show (e (e.symm ⟨x, hx⟩) : V) = x
+    rw [Equiv.apply_symm_apply]
+  · rintro x ⟨i, rfl⟩
+    exact hb_subset (e i).property
 
 /-! 2.31 Basis of finite-dimensional vector space
 
@@ -161,7 +238,9 @@ list given by finite-dimensionality. -/
 
 theorem exists_basis [Module.Finite F V] :
     ∃ (n : ℕ) (v : Fin n → V), IsBasis F v := by
-  sorry
+  obtain ⟨_, w, hw⟩ := Module.Finite.exists_fin (R := F) (M := V)
+  obtain ⟨n', vs, hbasis, _⟩ := exists_basis_of_spans w hw
+  exact ⟨n', vs, hbasis⟩
 
 /-! 2.32 Every linearly independent list extends to a basis
 
@@ -170,9 +249,41 @@ extended (by adjoining further vectors) to a basis of the space. -/
 
 theorem exists_basis_extending [Module.Finite F V] {m : ℕ} (v : Fin m → V)
     (hv : LinearIndependent F v) :
-    ∃ (n : ℕ) (hmn : m ≤ n) (w : Fin n → V), IsBasis F w ∧
-      ∀ i : Fin m, w (Fin.castLE hmn i) = v i := by
-  sorry
+    ∃ (n : ℕ) (w : Fin n → V), IsBasis F w ∧ Set.range v ⊆ Set.range w := by
+  -- Append a spanning list to {lit}`v` and apply the procedure of 2.30: the
+  -- procedure cannot delete any {lit}`v i` because the {lit}`v`-prefix is
+  -- linearly independent. mathlib's {name}`exists_linearIndepOn_id_extension`
+  -- packages this, returning a linearly independent superset of
+  -- {lit}`Set.range v` that still spans.
+  classical
+  have hv' : LinearIndepOn F id (Set.range v) := hv.linearIndepOn_id
+  obtain ⟨_, ws, hws⟩ := Module.Finite.exists_fin (R := F) (M := V)
+  let t : Set V := Set.range v ∪ Set.range ws
+  have hvt : Set.range v ⊆ t := Set.subset_union_left
+  obtain ⟨b, hbt, hvb, htb, hb_li⟩ := exists_linearIndepOn_id_extension hv' hvt
+  have ht_fin : t.Finite := (Set.finite_range v).union (Set.finite_range ws)
+  have hb_fin : b.Finite := ht_fin.subset hbt
+  have hb_span : Submodule.span F b = ⊤ := by
+    rw [eq_top_iff, ← hws]
+    apply Submodule.span_le.mpr
+    intro x hx
+    apply htb
+    exact Set.subset_union_right hx
+  haveI : Fintype b := hb_fin.fintype
+  let n := Fintype.card b
+  let e : Fin n ≃ b := (Fintype.equivFin b).symm
+  refine ⟨n, fun i => (e i : V), ⟨?_, ?_⟩, ?_⟩
+  · exact hb_li.comp e e.injective
+  · rw [Spans, eq_top_iff, ← hb_span]
+    apply Submodule.span_mono
+    intro x hx
+    refine ⟨e.symm ⟨x, hx⟩, ?_⟩
+    show (e (e.symm ⟨x, hx⟩) : V) = x
+    rw [Equiv.apply_symm_apply]
+  · intro x hx
+    refine ⟨e.symm ⟨x, hvb hx⟩, ?_⟩
+    show (e (e.symm ⟨x, hvb hx⟩) : V) = x
+    rw [Equiv.apply_symm_apply]
 
 /-! 2.33 Every subspace of {lit}`V` is part of a direct sum equal to {lit}`V`
 
@@ -180,8 +291,8 @@ If {lit}`V` is finite-dimensional and {lit}`U` is a subspace of {lit}`V`,
 then there is a subspace {lit}`W` of {lit}`V` such that {lit}`V = U ⊕ W`. -/
 
 theorem exists_isCompl [Module.Finite F V] (U : Submodule F V) :
-    ∃ W : Submodule F V, IsCompl U W := by
-  sorry
+    ∃ W : Submodule F V, IsCompl U W :=
+  Submodule.exists_isCompl U
 
 /-! # Exercises -/
 
