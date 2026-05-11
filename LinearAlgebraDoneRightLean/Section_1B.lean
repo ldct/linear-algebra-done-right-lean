@@ -224,7 +224,7 @@ theorem exercise_1B_5 (V : Type*) [AddCommMonoid V] (m : AxlerAltModule F V) :
   sorry
 
 /-! 1B.6
-  For this exericise, instead of redefiniting extended reals we will use
+  For this exericise, instead of a custom extended reals definition we will use
   mathlib's {name}`EReal` type, which is `ℝ ∪ {∞, -∞}`.
   In mathlib {lit}`⊤ = ∞` and {lit}`⊥ = -∞`
 
