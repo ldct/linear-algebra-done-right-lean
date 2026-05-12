@@ -387,6 +387,7 @@ example (U W X : Submodule F V) (h₁ : U ≤ X) (h₂ : W ≤ X) : U ⊔ W ≤ 
 The sum {lit}`V₁ + ⋯ + Vₘ` is a *direct sum* if each element has only one
 representation as {lit}`v₁ + ⋯ + vₘ` with each {lit}`vₖ ∈ Vₖ`. -/
 
+/-! The property that the collection of subspaces {lit}`W₁, ..., Wₘ` satisfies `W₁ ⊕ ... ⊕ Wₘ = W₁ + ... + Wₘ`. -/
 def IsDirectSum {m : ℕ} (W : Fin m → Submodule F V) : Prop :=
   ∀ (u v : (i : Fin m) → W i),
     (∑ i, ((u i : V))) = (∑ i, ((v i : V))) → u = v
@@ -454,6 +455,7 @@ end Example_1_42
 
 namespace Example_1_43
 
+/-! The subspace of {lit}`Fⁿ` consisting of vectors with 0 at all coordinates except possibly at {lit}`k`. -/
 def Axis (n : ℕ) (k : Fin n) : Submodule F (Fin n → F) where
   carrier := {v | ∀ i, i ≠ k → v i = 0}
   zero_mem' := by intro i _; rfl
@@ -583,6 +585,29 @@ example : ¬ IsDirectSum (F := F) ![V₁, V₂, V₃] := by
 
 end Example_1_44
 
+/-! Addendum: unit tests for direct sum definition
+
+These unit tests attempt to verify that the definition of {lit}`IsDirectSum` matches the description given in its docstring.
+
+In particular, `IsDirectSum ![W₁, ..., Wₘ]` does not imply that `W₁ + ... + Wₘ = ⊤`.
+-/
+
+def a1 := Example_1_43.Axis (F := F) 5 0
+def a2 := Example_1_43.Axis (F := F) 5 1
+
+example : IsDirectSum (F := F) ![a1, a2] := by
+  intro u v huv
+  ext i j
+  have h := congrFun huv j
+  simp only [Fin.sum_univ_two, Pi.add_apply] at h
+  fin_cases i
+  · by_cases hj : j = 0
+    · subst hj; simpa [(u 1).2 0 (by decide), (v 1).2 0 (by decide)] using h
+    · exact ((u 0).2 j hj).trans ((v 0).2 j hj).symm
+  · by_cases hj : j = 1
+    · subst hj; simpa [(u 0).2 1 (by decide), (v 0).2 1 (by decide)] using h
+    · exact ((u 1).2 j hj).trans ((v 1).2 j hj).symm
+
 /-! 1.45 Condition for a direct sum -/
 
 theorem isDirectSum_iff {m : ℕ} (W : Fin m → Submodule F V) :
@@ -598,7 +623,7 @@ theorem isDirectSum_iff {m : ℕ} (W : Fin m → Submodule F V) :
 /-! 1.46 Direct sum of two subspaces -/
 
 theorem isDirectSum_pair_iff (U W : Submodule F V) :
-    IsDirectSum (F := F) ![U, W] ↔ U ⊓ W = ⊥ := by
+    IsDirectSum ![U, W] ↔ U ⊓ W = ⊥ := by
   rw [isDirectSum_iff, Submodule.eq_bot_iff]
   refine ⟨?_, ?_⟩
   · -- direct sum → intersection trivial
@@ -624,6 +649,30 @@ theorem isDirectSum_pair_iff (U W : Submodule F V) :
     fin_cases i <;> apply Subtype.ext
     · exact h0Z
     · exact h1Z
+
+/-! {lit}`IsCompl`
+
+There are two equivalent ways of saying that {lit}`V = U ⊕ W`, where {lit}`U, W` are subspaces of {lit}`V`.
+
+In Mathlib, this is idiomatically written as {lit}`IsCompl U W`.
+
+Alternatively, {lit}`IsDirectSum ![U, W]` states that {lit}`U ⊕ W = U + W`, and we can add the condition that {lit}`U + W = V`.
+
+We prefer using {lit}`IsCompl` to state exercise 1C.20 and 1C.21.
+-/
+
+/-! Equivalent ways of saying that {lit}`V = U ⊕ W`. -/
+example (U W : Submodule F V) : (IsDirectSum ![U, W] ∧ U ⊔ W = ⊤) ↔ IsCompl U W := by
+  constructor
+  · rintro ⟨ h1, h2 ⟩
+    constructor
+    · rw [disjoint_iff]
+      exact (isDirectSum_pair_iff U W).mp h1
+    · exact codisjoint_iff.mpr h2
+  · intro h
+    refine ⟨(isDirectSum_pair_iff U W).mpr ?_, ?_⟩
+    · exact disjoint_iff.mp h.disjoint
+    · exact codisjoint_iff.mp h.codisjoint
 
 /-! # Exercises -/
 
@@ -743,16 +792,18 @@ theorem exercise_1C_11 (𝒞 : Set (Submodule F V)) :
     ∃ S : Submodule F V, (S : Set V) = ⋂ U ∈ 𝒞, (U : Set V) := by
   sorry
 
-/-- 1C.12 -/
+/-- 1C.12 Union of two subspaces is a subspace if and only if one is contained in the other. -/
 @[avoiding Submodule.union_eq_iff_le_or_le]
 theorem exercise_1C_12 (U W : Submodule F V) :
     (∃ S : Submodule F V, (S : Set V) = (U : Set V) ∪ (W : Set V)) ↔
       U ≤ W ∨ W ≤ U := by
   sorry
 
-/-- 1C.13 To prove this we need a scalar in {lit}`F` other than {lit}`0` and
-{lit}`1`; we assume {lit}`[CharZero F]`, which forces {lit}`(n : F) ≠ 0` for
-every positive {lit}`n` and is satisfied by {lit}`ℝ` and {lit}`ℂ` (Axler's working fields). -/
+/-- 1C.13 The union of three subspaces is a subspace iff one of the subspaces
+contains the other two. To prove this we need a scalar in {lit}`F` other than
+{lit}`0` and {lit}`1`; we assume {lit}`[CharZero F]`, which forces
+{lit}`(n : F) ≠ 0` for every positive {lit}`n` and is satisfied by {lit}`ℝ`
+and {lit}`ℂ` (Axler's working fields). -/
 theorem exercise_1C_13 [CharZero F] (U W X : Submodule F V) :
     (∃ S : Submodule F V, (S : Set V) = (U : Set V) ∪ W ∪ X) ↔
       (W ≤ U ∧ X ≤ U) ∨ (U ≤ W ∧ X ≤ W) ∨ (U ≤ X ∧ W ≤ X) := by
@@ -813,7 +864,7 @@ def exercise_1C_14_W : Submodule F (Fin 3 → F) where
     · simp [smul_eq_mul]; ring
 
 theorem exercise_1C_14 :
-    ((exercise_1C_14_U (F := F) ⊔ exercise_1C_14_W : Submodule F (Fin 3 → F))
+    ((exercise_1C_14_U ⊔ exercise_1C_14_W : Submodule F (Fin 3 → F))
       : Set (Fin 3 → F)) = {v | sorry} := by
   sorry
 
@@ -836,7 +887,7 @@ def exercise_1C_17 :
   -- first line should be `apply isTrue` or `apply isFalse`
   sorry
 
-/-- 1C.18(a) -/
+/-- 1C.18(a) - does there exist a subspace E such that for all subspaces U, U ⊔ E = U, i.e., E is the additive identity? -/
 @[avoiding bot_sup_eq, sup_bot_eq]
 def exercise_1C_18_id :
     Decidable (∃ E : Submodule F V, ∀ U : Submodule F V, U ⊔ E = U) := by
@@ -900,7 +951,7 @@ theorem exercise_1C_22 :
     ∃ W₁ W₂ W₃ : Submodule F (Fin 5 → F),
       W₁ ≠ ⊥ ∧ W₂ ≠ ⊥ ∧ W₃ ≠ ⊥ ∧
       IsDirectSum ![exercise_1C_21_U (F := F), W₁, W₂, W₃] ∧
-      exercise_1C_21_U (F := F) ⊔ W₁ ⊔ W₂ ⊔ W₃ = ⊤ := by
+      exercise_1C_21_U ⊔ W₁ ⊔ W₂ ⊔ W₃ = ⊤ := by
   sorry
 
 /-- 1C.23 -/
