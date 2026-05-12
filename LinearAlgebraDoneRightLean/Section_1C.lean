@@ -799,11 +799,9 @@ theorem exercise_1C_12 (U W : Submodule F V) :
       U ≤ W ∨ W ≤ U := by
   sorry
 
-/-- 1C.13 The union of three subspaces is a subspace iff one of the subspaces
-contains the other two. To prove this we need a scalar in {lit}`F` other than
-{lit}`0` and {lit}`1`; we assume {lit}`[CharZero F]`, which forces
-{lit}`(n : F) ≠ 0` for every positive {lit}`n` and is satisfied by {lit}`ℝ`
-and {lit}`ℂ` (Axler's working fields). -/
+/-- 1C.13 To prove this we need a scalar in {lit}`F` other than {lit}`0` and
+{lit}`1`; we assume {lit}`[CharZero F]`, which forces {lit}`(n : F) ≠ 0` for
+every positive {lit}`n` and is satisfied by {lit}`ℝ` and {lit}`ℂ` (Axler's working fields). -/
 theorem exercise_1C_13 [CharZero F] (U W X : Submodule F V) :
     (∃ S : Submodule F V, (S : Set V) = (U : Set V) ∪ W ∪ X) ↔
       (W ≤ U ∧ X ≤ U) ∨ (U ≤ W ∧ X ≤ W) ∨ (U ≤ X ∧ W ≤ X) := by
