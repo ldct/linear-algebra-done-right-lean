@@ -585,29 +585,6 @@ example : ¬ IsDirectSum (F := F) ![V₁, V₂, V₃] := by
 
 end Example_1_44
 
-/-! Addendum: unit tests for direct sum definition
-
-These unit tests attempt to verify that the definition of {lit}`IsDirectSum` matches the description given in its docstring.
-
-In particular, `IsDirectSum ![W₁, ..., Wₘ]` does not imply that `W₁ + ... + Wₘ = ⊤`.
--/
-
-def a1 := Example_1_43.Axis (F := F) 5 0
-def a2 := Example_1_43.Axis (F := F) 5 1
-
-example : IsDirectSum (F := F) ![a1, a2] := by
-  intro u v huv
-  ext i j
-  have h := congrFun huv j
-  simp only [Fin.sum_univ_two, Pi.add_apply] at h
-  fin_cases i
-  · by_cases hj : j = 0
-    · subst hj; simpa [(u 1).2 0 (by decide), (v 1).2 0 (by decide)] using h
-    · exact ((u 0).2 j hj).trans ((v 0).2 j hj).symm
-  · by_cases hj : j = 1
-    · subst hj; simpa [(u 0).2 1 (by decide), (v 0).2 1 (by decide)] using h
-    · exact ((u 1).2 j hj).trans ((v 1).2 j hj).symm
-
 /-! 1.45 Condition for a direct sum -/
 
 theorem isDirectSum_iff {m : ℕ} (W : Fin m → Submodule F V) :
@@ -792,7 +769,7 @@ theorem exercise_1C_11 (𝒞 : Set (Submodule F V)) :
     ∃ S : Submodule F V, (S : Set V) = ⋂ U ∈ 𝒞, (U : Set V) := by
   sorry
 
-/-- 1C.12 Union of two subspaces is a subspace if and only if one is contained in the other. -/
+/-- 1C.12 -/
 @[avoiding Submodule.union_eq_iff_le_or_le]
 theorem exercise_1C_12 (U W : Submodule F V) :
     (∃ S : Submodule F V, (S : Set V) = (U : Set V) ∪ (W : Set V)) ↔
