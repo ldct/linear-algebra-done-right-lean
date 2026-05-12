@@ -658,7 +658,7 @@ In Mathlib, this is idiomatically written as {lit}`IsCompl U W`.
 
 Alternatively, {lit}`IsDirectSum ![U, W]` states that {lit}`U ⊕ W = U + W`, and we can add the condition that {lit}`U + W = V`.
 
-We prefer using {lit}`IsCompl` to state exercise 1C.20 and 1C.21.
+We prefer using {lit}`IsCompl` to state the condition when they appear in exercises 1C.20 and 1C.21; note that this means {lit}`V` does not appear explicitly, but instead appears as the ambient space of {lit}`U` and {lit}`W`.
 -/
 
 /-! Equivalent ways of saying that {lit}`V = U ⊕ W`. -/
@@ -919,7 +919,7 @@ def exercise_1C_20_U : Submodule F (Fin 4 → F) where
     exact ⟨by simp [Pi.smul_apply, h1], by simp [Pi.smul_apply, h2]⟩
 
 theorem exercise_1C_20 :
-    ∃ W : Submodule F (Fin 4 → F), IsCompl (exercise_1C_20_U (F := F)) W := by
+    ∃ W : Submodule F (Fin 4 → F), IsCompl exercise_1C_20_U W := by
   sorry
 
 /-- 1C.21 -/
@@ -940,7 +940,7 @@ def exercise_1C_21_U : Submodule F (Fin 5 → F) where
     · show a • v 4 = 2 * (a • v 0); simp only [smul_eq_mul]; rw [h4]; ring
 
 theorem exercise_1C_21 :
-    ∃ W : Submodule F (Fin 5 → F), IsCompl (exercise_1C_21_U (F := F)) W := by
+    ∃ W : Submodule F (Fin 5 → F), IsCompl exercise_1C_21_U W := by
   sorry
 
 /-- 1C.22 The direct-sum condition is captured by {name}`IsDirectSum` on the
