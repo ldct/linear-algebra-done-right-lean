@@ -25,7 +25,7 @@
    "type": "git",
    "subDir": null,
    "scope": "",
-   "rev": "5024328fe2095f463292f624953eaf6b2988b4fa",
+   "rev": "a0db55ee53634ca3c586f622787f14ef02c5ec76",
    "name": "«companion-helper»",
    "manifestFile": "lake-manifest.json",
    "inputRev": "main",

@@ -42,38 +42,35 @@ example : (2 + 3 * I) * (4 + 5 * I) = -7 + 22 * I := by
 
 /-! 1.3 Properties of complex arithmetic -/
 
-@[avoiding Complex.commRing]
+@[avoiding Complex.commRing, Complex.instCommSemiring, Complex.instField]
 theorem exercise_1A_1 (α β : ℂ) : α + β = β + α := by sorry
 
 /-! 1.4 Example: commutativity of complex multiplication -/
 
-@[avoiding Complex.commRing]
+@[avoiding Complex.commRing, Complex.instCommSemiring, Complex.instField]
 theorem mul_comm_example (α β : ℂ) : α * β = β * α := by
-  rw [← re_add_im α, ← re_add_im β]
   apply Complex.ext
-  · ring_nf
-  · ring_nf
+  · simp only [Complex.mul_re]; ring
+  · simp only [Complex.mul_im]; ring
 
-@[avoiding Complex.addGroupWithOne]
+@[avoiding Complex.commRing, Complex.instCommSemiring, Complex.instField]
 theorem exercise_1A_2 (α β γ : ℂ) : (α + β) + γ = α + (β + γ) := by sorry
 
-@[avoiding Complex.commRing]
+@[avoiding Complex.commRing, Complex.instCommSemiring, Complex.instField]
 theorem exercise_1A_3 (α β γ : ℂ) : (α * β) * γ = α * (β * γ) := by sorry
 
-@[avoiding Complex.commRing]
+@[avoiding Complex.commRing, Complex.instCommSemiring, Complex.instField]
 theorem exercise_1A_4 (α β γ : ℂ) : γ * (α + β) = γ * α + γ * β := by sorry
 
 example (γ : ℂ) : γ + 0 = γ := add_zero γ
 example (γ : ℂ) : γ * 1 = γ := mul_one γ
 
-@[avoiding Complex.instNeg, Complex.instSub,
-    neg_eq_of_add_eq_zero_left, neg_eq_of_add_eq_zero_right,
-    eq_neg_of_add_eq_zero_left, eq_neg_of_add_eq_zero_right]
+@[avoiding Complex.instNeg, Complex.instSub, Complex.commRing, Complex.instCommSemiring,
+    Complex.instField]
 theorem exercise_1A_5 (α : ℂ) : ∃! β : ℂ, α + β = 0 := by sorry
 
-@[avoiding Complex.instInv, Complex.instDivInvMonoid,
-    inv_eq_of_mul_eq_one_left, inv_eq_of_mul_eq_one_right,
-    eq_inv_of_mul_eq_one_left, eq_inv_of_mul_eq_one_right]
+@[avoiding Complex.instInv, Complex.instDivInvMonoid, Complex.commRing, Complex.instCommSemiring,
+    Complex.instField]
 theorem exercise_1A_6 (α : ℂ) (hα : α ≠ 0) : ∃! β : ℂ, α * β = 1 := by sorry
 
 /-! 1.5 Definition: −α, subtraction, 1/α, division -/
