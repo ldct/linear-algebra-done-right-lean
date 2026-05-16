@@ -59,7 +59,7 @@ on the human-vs-AI split as we accumulate playthroughs.
 | 1B. Definition of vector space | ✓ | ✓ | — |
 | 1C. Subspaces | ✓ | ✓ | — |
 | 2A. Span and Linear Independence | ✓ | ✓ | — |
-| 2B. Bases | ✓ | — | — |
+| 2B. Bases | ✓ | ✓ | — |
 | 2C. Dimension | ✓ | — | — |
 
 ## Layout

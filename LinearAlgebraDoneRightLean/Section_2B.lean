@@ -20,6 +20,7 @@ import Mathlib.Tactic.Linter.Style
 import Mathlib.Tactic.Recall
 import Mathlib.Tactic.Ring
 import LinearAlgebraDoneRightLean.Section_2A
+import LinearAlgebraDoneRightLean.Section_1B
 import CompanionHelper
 
 /-!
@@ -47,10 +48,9 @@ def IsBasis (F : Type*) {V : Type*} [Field F] [AddCommGroup V] [Module F V]
 {lit}`(1, 0, …, 0), (0, 1, …, 0), …, (0, …, 0, 1)`. -/
 
 example (n : ℕ) :
-    IsBasis F (fun k : Fin n => (Pi.single k (1 : F) : Fin n → F)) := by
-  refine ⟨?_, ?_⟩
-  · -- Linear independence: read off coefficient {lit}`j` from the equation.
-    rw [Fintype.linearIndependent_iff]
+    IsBasis F (fun k : Fin n => (Pi.single k 1 : Fin n → F)) := by
+  constructor
+  · rw [Fintype.linearIndependent_iff]
     intro a ha j
     have hj := congrFun ha j
     simp only [Pi.zero_apply, Finset.sum_apply, Pi.smul_apply, smul_eq_mul,
@@ -60,8 +60,7 @@ example (n : ℕ) :
     · intros i _ hij
       rw [if_neg (fun h => hij h.symm)]; ring
     · intro h; exact absurd (Finset.mem_univ j) h
-  · -- Spanning: any {lit}`v ∈ Fⁿ` is {lit}`∑ v i • eᵢ` (cf. 2.8).
-    rw [Spans, eq_top_iff]
+  · rw [Spans, eq_top_iff]
     intro v _
     rw [Submodule.mem_span_range_iff_exists_fun]
     refine ⟨v, ?_⟩
@@ -73,56 +72,57 @@ example (n : ℕ) :
       simp [hij.symm]
     · intro h; exact absurd (Finset.mem_univ j) h
 
+/-! These examples (b)–(g) and the note below are the content of exercise
+{lit}`2B.2`; they are stated here and left as {lit}`sorry`, to be filled in
+under that exercise. -/
+
 /-! (b) The list {lit}`(1, 2), (3, 5)` is a basis of {lit}`F²`. Note its
 length is 2, the same as the length of the standard basis of {lit}`F²`; this
 is no coincidence (see 2.34). -/
 
 example : IsBasis F (![![1, 2], ![3, 5]] : Fin 2 → Fin 2 → F) := by
-  sorry
+  sorry  -- exercise 2B.2
 
 /-! (c) The list {lit}`(1, 2, -4), (7, -5, 6)` is linearly independent in
 {lit}`F³` but is *not* a basis: it fails to span. -/
 
-example : LinearIndependent F (![![1, 2, -4], ![7, -5, 6]] : Fin 2 → Fin 3 → F) := by
-  sorry
+example [CharZero F] :
+    LinearIndependent F (![![1, 2, -4], ![7, -5, 6]] : Fin 2 → Fin 3 → F) := by
+  sorry  -- exercise 2B.2
 
-example : ¬ Spans F (![![1, 2, -4], ![7, -5, 6]] : Fin 2 → Fin 3 → F) := by
-  sorry
+example [CharZero F] :
+    ¬ Spans F (![![1, 2, -4], ![7, -5, 6]] : Fin 2 → Fin 3 → F) := by
+  sorry  -- exercise 2B.2
 
 /-! (d) The list {lit}`(1, 2), (3, 5), (4, 13)` spans {lit}`F²` but is not
 a basis: it is linearly dependent. -/
 
 example : Spans F (![![1, 2], ![3, 5], ![4, 13]] : Fin 3 → Fin 2 → F) := by
-  sorry
+  sorry  -- exercise 2B.2
 
 example : ¬ LinearIndependent F
     (![![1, 2], ![3, 5], ![4, 13]] : Fin 3 → Fin 2 → F) := by
-  sorry
+  sorry  -- exercise 2B.2
 
 /-! (e) The list {lit}`(1, 1, 0), (0, 0, 1)` is a basis of
 {lit}`{(x, x, y) ∈ F³ : x, y ∈ F}`. -/
 
-namespace Example_2_27e
-
-def U (F : Type*) [Field F] : Submodule F (Fin 3 → F) where
+def U_27e (F : Type*) [Field F] : Submodule F (Fin 3 → F) where
   carrier := {v | v 0 = v 1}
   zero_mem' := rfl
   add_mem' := by intro u v hu hv; show u 0 + v 0 = u 1 + v 1; rw [hu, hv]
   smul_mem' := by intro a v hv; show a • v 0 = a • v 1; rw [hv]
 
-def basisVec : Fin 2 → U F :=
+def basisVec_27e : Fin 2 → U_27e F :=
   ![⟨![1, 1, 0], rfl⟩, ⟨![0, 0, 1], rfl⟩]
 
-example : IsBasis F (basisVec (F := F)) := by sorry
-
-end Example_2_27e
+example : IsBasis F (basisVec_27e (F := F)) := by
+  sorry  -- exercise 2B.2
 
 /-! (f) The list {lit}`(1, -1, 0), (1, 0, -1)` is a basis of
 {lit}`{(x, y, z) ∈ F³ : x + y + z = 0}`. -/
 
-namespace Example_2_27f
-
-def U (F : Type*) [Field F] : Submodule F (Fin 3 → F) where
+def U_27f (F : Type*) [Field F] : Submodule F (Fin 3 → F) where
   carrier := {v | v 0 + v 1 + v 2 = 0}
   zero_mem' := by show (0 : F) + 0 + 0 = 0; ring
   add_mem' := by
@@ -141,13 +141,12 @@ def U (F : Type*) [Field F] : Submodule F (Fin 3 → F) where
     have heq : a * v 0 + a * v 1 + a * v 2 = a * (v 0 + v 1 + v 2) := by ring
     rw [heq, hv', mul_zero]
 
-def basisVec : Fin 2 → U F :=
+def basisVec_27f : Fin 2 → U_27f F :=
   ![⟨![1, -1, 0], by show (1 : F) + (-1) + 0 = 0; ring⟩,
     ⟨![1, 0, -1], by show (1 : F) + 0 + (-1) = 0; ring⟩]
 
-example : IsBasis F (basisVec (F := F)) := by sorry
-
-end Example_2_27f
+example : IsBasis F (basisVec_27f (F := F)) := by
+  sorry  -- exercise 2B.2
 
 /-! (g) The list {lit}`1, z, …, zᵐ` is the *standard basis* of {lit}`Pₘ(F)`. -/
 
@@ -156,10 +155,14 @@ example (m : ℕ) [Infinite F] : IsBasis F
       (⟨Polynomial.X ^ (i : ℕ), by
         rw [Polynomial.mem_degreeLT, Polynomial.degree_X_pow]
         exact_mod_cast i.isLt⟩ : Polynomial.degreeLT F (m + 1))) := by
-  sorry
+  sorry  -- exercise 2B.2
 
 /-! Note: {lit}`(7, 5), (-4, 9)` and {lit}`(1, 2), (3, 5)` are both bases of
-{lit}`F²`. So {lit}`Fⁿ` has many bases beyond the standard one. -/
+{lit}`F²`. So {lit}`Fⁿ` has many bases beyond the standard one. (The second
+list is example (b) above; the first is recorded here.) -/
+
+example [CharZero F] : IsBasis F (![![7, 5], ![-4, 9]] : Fin 2 → Fin 2 → F) := by
+  sorry  -- exercise 2B.2
 
 /-! 2.28 Criterion for basis
 
@@ -168,16 +171,13 @@ written *uniquely* as {lit}`v = a₁ v₁ + ⋯ + aₙ vₙ` with {lit}`aᵢ ∈
 
 theorem isBasis_iff_unique_combo {m : ℕ} (v : Fin m → V) :
     IsBasis F v ↔ ∀ u : V, ∃! a : Fin m → F, ∑ i, a i • v i = u := by
-  refine ⟨?_, ?_⟩
+  constructor
   · rintro ⟨hli, hspan⟩ u
-    -- Existence: any {lit}`u` lies in the span, hence equals {lit}`∑ a i • v i`.
     have hu_in : u ∈ Submodule.span F (Set.range v) := by
       rw [hspan]; exact Submodule.mem_top
     rw [Submodule.mem_span_range_iff_exists_fun] at hu_in
     obtain ⟨a, ha⟩ := hu_in
     refine ⟨a, ha, ?_⟩
-    -- Uniqueness: from {lit}`∑ a • v = u = ∑ b • v`, subtracting gives
-    -- {lit}`∑ (a - b) • v = 0`; linear independence forces {lit}`a = b`.
     intro b hb
     rw [Fintype.linearIndependent_iff] at hli
     have h_diff : ∑ i, (b i - a i) • v i = 0 := by
@@ -185,16 +185,13 @@ theorem isBasis_iff_unique_combo {m : ℕ} (v : Fin m → V) :
     have h_zero := hli (fun i => b i - a i) h_diff
     funext i; exact sub_eq_zero.mp (h_zero i)
   · intro huniq
-    refine ⟨?_, ?_⟩
-    · -- Linear independence: the unique representative of {lit}`0` is the
-      -- zero coefficient sequence.
-      rw [Fintype.linearIndependent_iff]
+    constructor
+    · rw [Fintype.linearIndependent_iff]
       intro a ha
       have h0 : ∑ i : Fin m, (0 : F) • v i = 0 := by simp
       have ha_eq : a = (fun _ => 0) := (huniq 0).unique ha h0
       intro i; exact congrFun ha_eq i
-    · -- Spanning: existence of a representation gives membership in span.
-      rw [Spans, eq_top_iff]
+    · rw [Spans, eq_top_iff]
       intro u _
       rw [Submodule.mem_span_range_iff_exists_fun]
       obtain ⟨a, ha, _⟩ := huniq u
@@ -205,31 +202,96 @@ theorem isBasis_iff_unique_combo {m : ℕ} (v : Fin m → V) :
 Every spanning list in a vector space can be reduced to a basis by iterating
 the rule "drop {lit}`vₖ` if it lies in the span of {lit}`v₁, …, v_{k-1}`". -/
 
+/-- Strengthened form of 2.30: if the first {lit}`m₀` vectors of {lit}`v` are
+already linearly independent, Axler's deletion procedure cannot drop any of
+them, so the resulting basis is an *extension* of that LI prefix. -/
+theorem exists_basis_of_spans_extending {m : ℕ} (v : Fin m → V) (m₀ : ℕ)
+    (hm₀ : m₀ ≤ m)
+    (hli : LinearIndependent F (fun i : Fin m₀ => v (Fin.castLE hm₀ i)))
+    (hv : Spans F v) :
+    ∃ (n : ℕ) (vs : Fin n → V) (hn : m₀ ≤ n), IsBasis F vs ∧
+      Set.range vs ⊆ Set.range v ∧
+      ∀ i : Fin m₀, vs (Fin.castLE hn i) = v (Fin.castLE hm₀ i) := by
+  induction m using Nat.strong_induction_on with
+  | _ m ih =>
+    by_cases hLI : LinearIndependent F v
+    · exact ⟨m, v, hm₀, ⟨hLI, hv⟩, subset_rfl, fun _ => rfl⟩
+    · obtain ⟨k, hk_mem, hspan_eq⟩ :=
+        LADR.Section_2A.linearDependence_lemma v hLI
+      -- The LI-prefix hypothesis forces {lit}`m₀ ≤ k.val`, else the prefix
+      -- would be dependent (since {lit}`v k` lies in the span of earlier
+      -- prefix vectors).
+      have hkm₀ : m₀ ≤ k.val := by
+        by_contra hlt
+        push Not at hlt
+        have hk_lt : k.val < m₀ := hlt
+        let kp : Fin m₀ := ⟨k.val, hk_lt⟩
+        have hsubset : (v '' {i | i < k}) ⊆
+            (fun i : Fin m₀ => v (Fin.castLE hm₀ i)) '' {kp}ᶜ := by
+          rintro x ⟨i, hik : i < k, rfl⟩
+          refine ⟨⟨i.val, lt_trans hik hk_lt⟩, ?_, ?_⟩
+          · intro hh
+            rw [Set.mem_singleton_iff] at hh
+            have : i.val = k.val := by
+              have := congrArg Fin.val hh
+              exact this
+            omega
+          · apply congrArg v; apply Fin.ext; rfl
+        have hvk_in : v (Fin.castLE hm₀ kp) ∈ Submodule.span F
+            ((fun i : Fin m₀ => v (Fin.castLE hm₀ i)) '' {kp}ᶜ) := by
+          have hvk_eq : v k = v (Fin.castLE hm₀ kp) := by
+            apply congrArg v; apply Fin.ext; rfl
+          rw [← hvk_eq]
+          exact Submodule.span_mono hsubset hk_mem
+        exact hli.notMem_span kp hvk_in
+      have hm_pos : m ≠ 0 := fun h => (h ▸ k).elim0
+      obtain ⟨m', rfl⟩ : ∃ m', m = m' + 1 := ⟨m - 1, by omega⟩
+      let w : Fin m' → V := v ∘ k.succAbove
+      have hm₀' : m₀ ≤ m' := by
+        have hkLt : k.val < m' + 1 := k.isLt
+        omega
+      have hw_prefix : ∀ i : Fin m₀,
+          w (Fin.castLE hm₀' i) = v (Fin.castLE hm₀ i) := by
+        intro i
+        show v (k.succAbove (Fin.castLE hm₀' i)) = v (Fin.castLE hm₀ i)
+        have hLt : ((Fin.castLE hm₀' i : Fin m')).castSucc < k := by
+          show (Fin.castLE hm₀' i).val < k.val
+          rw [Fin.val_castLE]
+          have hi : i.val < m₀ := i.isLt
+          omega
+        rw [Fin.succAbove_of_castSucc_lt _ _ hLt]
+        apply congrArg v; apply Fin.ext; rfl
+      have hw_li : LinearIndependent F
+          (fun i : Fin m₀ => w (Fin.castLE hm₀' i)) := by
+        have heq : (fun i : Fin m₀ => w (Fin.castLE hm₀' i)) =
+            (fun i : Fin m₀ => v (Fin.castLE hm₀ i)) := by
+          funext i; exact hw_prefix i
+        rw [heq]; exact hli
+      have hw_range : Set.range w = v '' {i | i ≠ k} := by
+        show Set.range (v ∘ k.succAbove) = v '' {i | i ≠ k}
+        rw [Set.range_comp, Fin.range_succAbove]
+        rfl
+      have hw_spans : Spans F w := by
+        show Submodule.span F (Set.range w) = ⊤
+        rw [hw_range, ← hspan_eq]
+        exact hv
+      obtain ⟨n, vs, hn, hbasis, hsub, hpres⟩ :=
+        ih m' (Nat.lt_succ_self m') w hm₀' hw_li hw_spans
+      refine ⟨n, vs, hn, hbasis, ?_, ?_⟩
+      · intro x hx
+        obtain ⟨i, rfl⟩ := hsub hx
+        exact ⟨k.succAbove i, rfl⟩
+      · intro i
+        rw [hpres i, hw_prefix i]
+
+/-- 2.30: every spanning list contains a basis. Special case of
+{name}`exists_basis_of_spans_extending` with empty LI prefix. -/
 theorem exists_basis_of_spans {m : ℕ} (v : Fin m → V) (hv : Spans F v) :
     ∃ (n : ℕ) (vs : Fin n → V), IsBasis F vs ∧ Set.range vs ⊆ Set.range v := by
-  -- Mathlib's {name}`exists_linearIndependent` packages Axler's iterative
-  -- "drop {lit}`vₖ` if it's in the span of the previous": from the spanning
-  -- set {lit}`Set.range v`, extract a linearly independent subset
-  -- {lit}`b ⊆ Set.range v` with the same span.
-  classical
-  rw [Spans] at hv
-  obtain ⟨b, hb_subset, hb_span, hb_li⟩ := exists_linearIndependent F (Set.range v)
-  rw [hv] at hb_span
-  have hb_fin : b.Finite := (Set.finite_range v).subset hb_subset
-  haveI : Fintype b := hb_fin.fintype
-  let n := Fintype.card b
-  let e : Fin n ≃ b := (Fintype.equivFin b).symm
-  refine ⟨n, fun i => (e i : V), ⟨?_, ?_⟩, ?_⟩
-  · -- Reindex the {lit}`b`-indexed lin-indep family by the bijection.
-    exact hb_li.comp e e.injective
-  · rw [Spans, eq_top_iff, ← hb_span]
-    apply Submodule.span_mono
-    intro x hx
-    refine ⟨e.symm ⟨x, hx⟩, ?_⟩
-    show (e (e.symm ⟨x, hx⟩) : V) = x
-    rw [Equiv.apply_symm_apply]
-  · rintro x ⟨i, rfl⟩
-    exact hb_subset (e i).property
+  obtain ⟨n, vs, _, hbasis, hsub, _⟩ :=
+    exists_basis_of_spans_extending v 0 (Nat.zero_le _)
+      (by rw [Fintype.linearIndependent_iff]; intro a _ i; exact i.elim0) hv
+  exact ⟨n, vs, hbasis, hsub⟩
 
 /-! 2.31 Basis of finite-dimensional vector space
 
@@ -249,65 +311,150 @@ extended (by adjoining further vectors) to a basis of the space. -/
 
 theorem exists_basis_extending [Module.Finite F V] {m : ℕ} (v : Fin m → V)
     (hv : LinearIndependent F v) :
-    ∃ (n : ℕ) (w : Fin n → V), IsBasis F w ∧ Set.range v ⊆ Set.range w := by
-  -- Append a spanning list to {lit}`v` and apply the procedure of 2.30: the
-  -- procedure cannot delete any {lit}`v i` because the {lit}`v`-prefix is
-  -- linearly independent. mathlib's {name}`exists_linearIndepOn_id_extension`
-  -- packages this, returning a linearly independent superset of
-  -- {lit}`Set.range v` that still spans.
-  classical
-  have hv' : LinearIndepOn F id (Set.range v) := hv.linearIndepOn_id
-  obtain ⟨_, ws, hws⟩ := Module.Finite.exists_fin (R := F) (M := V)
-  let t : Set V := Set.range v ∪ Set.range ws
-  have hvt : Set.range v ⊆ t := Set.subset_union_left
-  obtain ⟨b, hbt, hvb, htb, hb_li⟩ := exists_linearIndepOn_id_extension hv' hvt
-  have ht_fin : t.Finite := (Set.finite_range v).union (Set.finite_range ws)
-  have hb_fin : b.Finite := ht_fin.subset hbt
-  have hb_span : Submodule.span F b = ⊤ := by
+    ∃ (n : ℕ) (w : Fin n → V) (hn : m ≤ n), IsBasis F w ∧
+      ∀ i : Fin m, w (Fin.castLE hn i) = v i := by
+  -- Append a spanning list to {lit}`v` and apply the strengthened 2.30: the
+  -- {lit}`v`-prefix is LI, so none of its entries get dropped.
+  obtain ⟨n', ws, hws⟩ := Module.Finite.exists_fin (R := F) (M := V)
+  let u : Fin (m + n') → V := Fin.append v ws
+  have hm_le : m ≤ m + n' := Nat.le_add_right m n'
+  have hu_prefix : ∀ i : Fin m, u (Fin.castLE hm_le i) = v i := by
+    intro i; exact Fin.append_left' v ws i
+  have hu_li_prefix : LinearIndependent F
+      (fun i : Fin m => u (Fin.castLE hm_le i)) := by
+    have heq : (fun i : Fin m => u (Fin.castLE hm_le i)) = v := by
+      funext i; exact hu_prefix i
+    rw [heq]; exact hv
+  have hu_spans : Spans F u := by
+    show Submodule.span F (Set.range u) = ⊤
     rw [eq_top_iff, ← hws]
-    apply Submodule.span_le.mpr
-    intro x hx
-    apply htb
-    exact Set.subset_union_right hx
-  haveI : Fintype b := hb_fin.fintype
-  let n := Fintype.card b
-  let e : Fin n ≃ b := (Fintype.equivFin b).symm
-  refine ⟨n, fun i => (e i : V), ⟨?_, ?_⟩, ?_⟩
-  · exact hb_li.comp e e.injective
-  · rw [Spans, eq_top_iff, ← hb_span]
     apply Submodule.span_mono
-    intro x hx
-    refine ⟨e.symm ⟨x, hx⟩, ?_⟩
-    show (e (e.symm ⟨x, hx⟩) : V) = x
-    rw [Equiv.apply_symm_apply]
-  · intro x hx
-    refine ⟨e.symm ⟨x, hvb hx⟩, ?_⟩
-    show (e (e.symm ⟨x, hvb hx⟩) : V) = x
-    rw [Equiv.apply_symm_apply]
+    rintro x ⟨i, rfl⟩
+    exact ⟨Fin.natAdd m i, Fin.append_right v ws i⟩
+  obtain ⟨n, w, hn, hbasis, _, hpres⟩ :=
+    exists_basis_of_spans_extending u m hm_le hu_li_prefix hu_spans
+  refine ⟨n, w, hn, hbasis, ?_⟩
+  intro i; rw [hpres i, hu_prefix i]
 
 /-! 2.33 Every subspace of {lit}`V` is part of a direct sum equal to {lit}`V`
 
 If {lit}`V` is finite-dimensional and {lit}`U` is a subspace of {lit}`V`,
 then there is a subspace {lit}`W` of {lit}`V` such that {lit}`V = U ⊕ W`. -/
 
+private lemma sum_prefix_tail {m n : ℕ} (hmn : m ≤ n) {M : Type*} [AddCommMonoid M]
+    (f : Fin n → M) :
+    ∑ k : Fin n, f k =
+      (∑ i : Fin m, f (Fin.castLE hmn i)) +
+      (∑ j : Fin (n - m), f ⟨m + j.val, by have := j.isLt; omega⟩) := by
+  have heq : m + (n - m) = n := by omega
+  rw [← Equiv.sum_comp (finCongr heq) f, Fin.sum_univ_add]
+  congr 1
+
 theorem exists_isCompl [Module.Finite F V] (U : Submodule F V) :
-    ∃ W : Submodule F V, IsCompl U W :=
-  Submodule.exists_isCompl U
+    ∃ W : Submodule F V, IsCompl U W := by
+  -- Take a basis {lit}`u` of {lit}`U`, view it in {lit}`V`, extend to a basis
+  -- {lit}`w` of {lit}`V`, and let {lit}`W` be the span of the appended tail.
+  classical
+  obtain ⟨m, u, hu_basis⟩ := exists_basis (F := F) (V := U)
+  let uV : Fin m → V := fun i => (u i : V)
+  have hu_li_V : LinearIndependent F uV :=
+    hu_basis.1.map' U.subtype
+      (LinearMap.ker_eq_bot_of_injective Subtype.val_injective)
+  obtain ⟨n, w, hmn, hw_basis, hw_prefix⟩ := exists_basis_extending uV hu_li_V
+  let W : Submodule F V :=
+    Submodule.span F (Set.range (fun j : Fin (n - m) =>
+      w ⟨m + j.val, by have := j.isLt; omega⟩))
+  have hprefix_eq : ∀ (c : Fin n → F) (i : Fin m),
+      c (Fin.castLE hmn i) • w (Fin.castLE hmn i) =
+        c (Fin.castLE hmn i) • uV i := by
+    intro c i; rw [hw_prefix i]
+  refine ⟨W, ?_, ?_⟩
+  · rw [Submodule.disjoint_def]
+    intro v hvU hvW
+    have hu_span_U : Submodule.span F (Set.range u) = ⊤ := hu_basis.2
+    have hv_in_uU : (⟨v, hvU⟩ : U) ∈ Submodule.span F (Set.range u) := by
+      rw [hu_span_U]; exact Submodule.mem_top
+    rw [Submodule.mem_span_range_iff_exists_fun] at hv_in_uU
+    obtain ⟨a, ha⟩ := hv_in_uU
+    have hv_eq_uV : ∑ i, a i • uV i = v := by
+      have := congrArg Subtype.val ha
+      rw [Submodule.coe_sum] at this
+      convert this using 1
+    rw [Submodule.mem_span_range_iff_exists_fun] at hvW
+    obtain ⟨b, hb⟩ := hvW
+    -- {lit}`c` combines the two expansions into a vanishing relation on the
+    -- full basis {lit}`w`: coefficients {lit}`a` on the prefix, {lit}`-b` on
+    -- the tail.
+    let c : Fin n → F := fun k =>
+      if h : k.val < m then a ⟨k.val, h⟩
+      else -b ⟨k.val - m, by have := k.isLt; omega⟩
+    have hc_prefix : ∀ i : Fin m, c (Fin.castLE hmn i) = a i := by
+      intro i
+      show (if h : (Fin.castLE hmn i).val < m then a ⟨_, h⟩ else _) = a i
+      have hlt : (Fin.castLE hmn i).val < m := by rw [Fin.val_castLE]; exact i.isLt
+      rw [dif_pos hlt]
+      congr 1
+    have hc_tail : ∀ j : Fin (n - m),
+        c ⟨m + j.val, by have := j.isLt; omega⟩ = -b j := by
+      intro j
+      show (if h : _ < m then _ else _) = -b j
+      have hge : ¬ m + j.val < m := by omega
+      rw [dif_neg hge]
+      congr
+      show m + j.val - m = j.val
+      omega
+    have hsum_zero : ∑ k, c k • w k = 0 := by
+      rw [sum_prefix_tail hmn (fun k => c k • w k)]
+      have hsum1 : ∑ i : Fin m, c (Fin.castLE hmn i) • w (Fin.castLE hmn i) = v := by
+        rw [← hv_eq_uV]
+        apply Finset.sum_congr rfl
+        intro i _; rw [hprefix_eq c i, hc_prefix i]
+      have hsum2 : ∑ j : Fin (n - m),
+          c ⟨m + j.val, by have := j.isLt; omega⟩ •
+            w ⟨m + j.val, by have := j.isLt; omega⟩ = -v := by
+        rw [← hb, ← Finset.sum_neg_distrib]
+        apply Finset.sum_congr rfl
+        intro j _; rw [hc_tail j, neg_smul]
+      rw [hsum1, hsum2, add_neg_cancel]
+    have hc_zero : ∀ k, c k = 0 := by
+      have hli := hw_basis.1
+      rw [Fintype.linearIndependent_iff] at hli
+      exact hli c hsum_zero
+    rw [← hv_eq_uV]
+    apply Finset.sum_eq_zero
+    intro i _
+    have hai : a i = 0 := by rw [← hc_prefix i]; exact hc_zero _
+    rw [hai, zero_smul]
+  · rw [codisjoint_iff, eq_top_iff]
+    intro v _
+    have hw_span : Submodule.span F (Set.range w) = ⊤ := hw_basis.2
+    have hv_in : v ∈ Submodule.span F (Set.range w) := by
+      rw [hw_span]; exact Submodule.mem_top
+    rw [Submodule.mem_span_range_iff_exists_fun] at hv_in
+    obtain ⟨c, hc⟩ := hv_in
+    have hsplit := sum_prefix_tail hmn (fun k => c k • w k)
+    rw [hc] at hsplit
+    rw [hsplit]
+    apply Submodule.add_mem_sup
+    · apply Submodule.sum_mem
+      intro i _
+      rw [hw_prefix i]
+      exact U.smul_mem _ (u i).property
+    · apply Submodule.sum_mem
+      intro j _
+      exact Submodule.smul_mem _ _ (Submodule.subset_span ⟨j, rfl⟩)
 
 /-! # Exercises -/
 
-/-- 2B.1 Find all vector spaces that have exactly one basis.
-
-(Answer: the trivial space {lit}`{0}`. Equivalently, every basis has length
-zero iff {lit}`V` is a subsingleton.) -/
+/-- 2B.1 -/
 theorem exercise_2B_1 :
     (∀ {n : ℕ} (v : Fin n → V), IsBasis F v → n = 0) ↔ Subsingleton V := by
   sorry
 
-/-! 2B.2 Verify the assertions in Example 2.27. (Already stated above as
-`example`s; this exercise is the union of those proofs.) -/
+/-! 2B.2: verify the assertions in Example 2.27 (stated as {lit}`example`s
+above). -/
 
-/-- 2B.3 Let {lit}`U = {(x₁, x₂, x₃, x₄, x₅) ∈ ℝ⁵ : x₁ = 3x₂ ∧ x₃ = 7x₄}`. -/
+/-- 2B.3 -/
 def exercise_2B_3_U : Submodule ℝ (Fin 5 → ℝ) where
   carrier := {v | v 0 = 3 * v 1 ∧ v 2 = 7 * v 3}
   zero_mem' := ⟨by simp, by simp⟩
@@ -322,30 +469,30 @@ def exercise_2B_3_U : Submodule ℝ (Fin 5 → ℝ) where
     · show a • v 0 = 3 * (a • v 1); simp only [smul_eq_mul]; rw [h1]; ring
     · show a • v 2 = 7 * (a • v 3); simp only [smul_eq_mul]; rw [h2]; ring
 
-/-- 2B.3(a) Find a basis of {lit}`U`. -/
+/-- 2B.3(a) -/
 theorem exercise_2B_3a :
     ∃ (n : ℕ) (v : Fin n → exercise_2B_3_U), IsBasis ℝ v := by
   sorry
 
-/-- 2B.3(b) Extend the basis of {lit}`U` to a basis of {lit}`ℝ⁵`. -/
+/-- 2B.3(b) -/
 theorem exercise_2B_3b :
     ∃ (n : ℕ) (v : Fin n → (Fin 5 → ℝ)), IsBasis ℝ v ∧
       (Set.range (fun i : exercise_2B_3_U => (i : Fin 5 → ℝ))) ⊆
         Submodule.span ℝ (Set.range v) := by
   sorry
 
-/-- 2B.3(c) Find {lit}`W ≤ ℝ⁵` with {lit}`ℝ⁵ = U ⊕ W`. -/
+/-- 2B.3(c) -/
 theorem exercise_2B_3c :
     ∃ W : Submodule ℝ (Fin 5 → ℝ), IsCompl exercise_2B_3_U W := by
   sorry
 
-/-- 2B.4 Let {lit}`U = {(z₁, z₂, z₃, z₄, z₅) ∈ ℂ⁵ : 6z₁ = z₂ ∧ z₃ + 2z₄ + 3z₅ = 0}`. -/
+/-- 2B.4 -/
 def exercise_2B_4_U : Submodule ℂ (Fin 5 → ℂ) where
   carrier := {v | 6 * v 0 = v 1 ∧ v 2 + 2 * v 3 + 3 * v 4 = 0}
   zero_mem' := ⟨by simp, by simp⟩
   add_mem' := by
     rintro u v ⟨h1, h2⟩ ⟨h1', h2'⟩
-    refine ⟨?_, ?_⟩
+    constructor
     · show 6 * (u 0 + v 0) = u 1 + v 1
       have : 6 * (u 0 + v 0) = 6 * u 0 + 6 * v 0 := by ring
       rw [this, h1, h1']
@@ -355,7 +502,7 @@ def exercise_2B_4_U : Submodule ℂ (Fin 5 → ℂ) where
       rw [heq, h2, h2', add_zero]
   smul_mem' := by
     rintro a v ⟨h1, h2⟩
-    refine ⟨?_, ?_⟩
+    constructor
     · show 6 * (a • v 0) = a • v 1
       simp only [smul_eq_mul]
       have : 6 * (a * v 0) = a * (6 * v 0) := by ring
@@ -366,49 +513,42 @@ def exercise_2B_4_U : Submodule ℂ (Fin 5 → ℂ) where
                  a * (v 2 + 2 * v 3 + 3 * v 4) := by ring
       rw [heq, h2, mul_zero]
 
-/-- 2B.4(a) Find a basis of {lit}`U`. -/
+/-- 2B.4(a) -/
 theorem exercise_2B_4a :
     ∃ (n : ℕ) (v : Fin n → exercise_2B_4_U), IsBasis ℂ v := by
   sorry
 
-/-- 2B.4(b) Extend the basis to a basis of {lit}`ℂ⁵`. -/
+/-- 2B.4(b) -/
 theorem exercise_2B_4b :
     ∃ (n : ℕ) (v : Fin n → (Fin 5 → ℂ)), IsBasis ℂ v ∧
       (Set.range (fun i : exercise_2B_4_U => (i : Fin 5 → ℂ))) ⊆
         Submodule.span ℂ (Set.range v) := by
   sorry
 
-/-- 2B.4(c) Find {lit}`W ≤ ℂ⁵` with {lit}`ℂ⁵ = U ⊕ W`. -/
+/-- 2B.4(c) -/
 theorem exercise_2B_4c :
     ∃ W : Submodule ℂ (Fin 5 → ℂ), IsCompl exercise_2B_4_U W := by
   sorry
 
-/-- 2B.5 Suppose {lit}`V` is finite-dimensional and {lit}`U, W` are subspaces
-of {lit}`V` such that {lit}`V = U + W`. Prove that there exists a basis of
-{lit}`V` consisting of vectors in {lit}`U ∪ W`. -/
+/-- 2B.5 -/
 theorem exercise_2B_5 [Module.Finite F V] (U W : Submodule F V) (hUW : U ⊔ W = ⊤) :
     ∃ (n : ℕ) (v : Fin n → V), IsBasis F v ∧
       ∀ i, (v i ∈ U) ∨ (v i ∈ W) := by
   sorry
 
-/-- 2B.6 Prove or counterexample: if {lit}`p₀, p₁, p₂, p₃` is a list in
-{lit}`P₃(F)` such that none of {lit}`pᵢ` has degree {lit}`2`, then
-{lit}`p₀, p₁, p₂, p₃` is *not* a basis of {lit}`P₃(F)`. -/
+/-- 2B.6 -/
 def exercise_2B_6 :
     Decidable (∀ (p : Fin 4 → Polynomial.degreeLT F 4),
       (∀ i, (p i : Polynomial F).degree ≠ 2) → ¬ IsBasis F p) := by
   -- first line should be `apply isTrue` or `apply isFalse`
   sorry
 
-/-- 2B.7 Suppose {lit}`v₁, v₂, v₃, v₄` is a basis of {lit}`V`. Prove that
-{lit}`v₁ + v₂, v₂ + v₃, v₃ + v₄, v₄` is also a basis of {lit}`V`. -/
+/-- 2B.7 -/
 theorem exercise_2B_7 (v : Fin 4 → V) (hv : IsBasis F v) :
     IsBasis F (![v 0 + v 1, v 1 + v 2, v 2 + v 3, v 3] : Fin 4 → V) := by
   sorry
 
-/-- 2B.8 Prove or counterexample: if {lit}`v₁, v₂, v₃, v₄` is a basis of
-{lit}`V` and {lit}`U` is a subspace of {lit}`V` with {lit}`v₁, v₂ ∈ U` and
-{lit}`v₃ ∉ U` and {lit}`v₄ ∉ U`, then {lit}`v₁, v₂` is a basis of {lit}`U`. -/
+/-- 2B.8 -/
 def exercise_2B_8 :
     Decidable (∀ (v : Fin 4 → V) (U : Submodule F V) (_ : IsBasis F v)
       (h0 : v 0 ∈ U) (h1 : v 1 ∈ U) (_ : v 2 ∉ U) (_ : v 3 ∉ U),
@@ -416,30 +556,25 @@ def exercise_2B_8 :
   -- first line should be `apply isTrue` or `apply isFalse`
   sorry
 
-/-- 2B.9 Suppose {lit}`v₁, …, vₘ` is a list in {lit}`V`. For
-{lit}`k ∈ {1, …, m}`, let {lit}`wₖ = v₁ + ⋯ + vₖ`. Show that {lit}`v` is a
-basis of {lit}`V` iff {lit}`w` is a basis of {lit}`V`. -/
+/-- 2B.9 -/
 theorem exercise_2B_9 {m : ℕ} (v : Fin m → V) :
     IsBasis F v ↔
       IsBasis F (fun k : Fin m => ∑ i : Fin (k + 1), v ⟨i, by omega⟩) := by
   sorry
 
-/-- 2B.10 Suppose {lit}`U` and {lit}`W` are subspaces of {lit}`V` such that
-{lit}`V = U ⊕ W`. Suppose also that {lit}`u₁, …, uₘ` is a basis of {lit}`U`
-and {lit}`w₁, …, wₙ` is a basis of {lit}`W`. Prove that the concatenation
-{lit}`u₁, …, uₘ, w₁, …, wₙ` is a basis of {lit}`V`. -/
+/-- 2B.10 -/
 theorem exercise_2B_10 (U W : Submodule F V) (hUW : IsCompl U W)
     {m n : ℕ} (u : Fin m → U) (w : Fin n → W)
     (hu : IsBasis F u) (hw : IsBasis F w) :
     IsBasis F (Fin.append (fun i => (u i : V)) (fun i => (w i : V))) := by
   sorry
 
-/-! 2B.11 Suppose {lit}`V` is a real vector space. If {lit}`v₁, …, vₙ` is a
-basis of {lit}`V` (as a real vector space), prove that the same list is a
-basis of the complexification {lit}`V_ℂ` (as a complex vector space).
-(See Exercise 8 of Section 1B for the definition of complexification.)
-
-Stated but not encoded here: the complexification has not been formalised in
-this companion. -/
+open LADR.Section_1B (Complexification exercise_1B_8) in
+/-- 2B.11 (complexification: see {name}`LADR.Section_1B.exercise_1B_8`) -/
+theorem exercise_2B_11 {V : Type*} [AddCommGroup V] [Module ℝ V]
+    {n : ℕ} (v : Fin n → V) (hv : IsBasis ℝ v) :
+    letI : Module ℂ (Complexification V) := exercise_1B_8 V
+    IsBasis ℂ (fun i : Fin n => ((v i, 0) : Complexification V)) := by
+  sorry
 
 end LADR.Section_2B

@@ -89,10 +89,10 @@ example (m : ℕ) : dim F (Polynomial.degreeLT F (m + 1)) = m + 1 := by
     Module.finrank_pi, Fintype.card_fin]
 
 /-! {lit}`dim {(x, x, y) ∈ F³} = 2`. -/
-example : dim F (LADR.Section_2B.Example_2_27e.U F) = 2 := by sorry
+example : dim F (LADR.Section_2B.U_27e F) = 2 := by sorry
 
 /-! {lit}`dim {(x, y, z) ∈ F³ : x + y + z = 0} = 2`. -/
-example : dim F (LADR.Section_2B.Example_2_27f.U F) = 2 := by sorry
+example : dim F (LADR.Section_2B.U_27f F) = 2 := by sorry
 
 /-! 2.37 Dimension of a subspace
 
