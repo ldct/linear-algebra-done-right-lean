@@ -59,15 +59,18 @@ theorem mul_comm_example (α β : ℂ) : α * β = β * α := by
   · simp only [Complex.mul_re]; ring
   · simp only [Complex.mul_im]; ring
 
-@[avoiding add_assoc]
-theorem exercise_1A_2 (α β γ : ℂ) : (α + β) + γ = α + (β + γ) := by
-  apply Complex.ext <;> grind [Complex.add_re, Complex.add_im]
+theorem exercise_1A_2' (α β γ : ℂ) : (α + β) + γ = α + (β + γ) := by
+  grind
 
-@[avoiding mul_assoc]
+@[avoiding Complex.commRing, Complex.instCommSemiring, Complex.instField]
+theorem exercise_1A_2 (α β γ : ℂ) : (α + β) + γ = α + (β + γ) := by
+  exact exercise_1A_2' α β γ
+
+@[avoiding Complex.commRing, Complex.instCommSemiring, Complex.instField]
 theorem exercise_1A_3 (α β γ : ℂ) : (α * β) * γ = α * (β * γ) := by
   apply Complex.ext <;> grind [Complex.mul_re, Complex.mul_im]
 
-@[avoiding mul_add, left_distrib]
+@[avoiding Complex.commRing, Complex.instCommSemiring, Complex.instField]
 theorem exercise_1A_4 (α β γ : ℂ) : γ * (α + β) = γ * α + γ * β := by
   apply Complex.ext
   · simp ; grind
@@ -76,21 +79,9 @@ theorem exercise_1A_4 (α β γ : ℂ) : γ * (α + β) = γ * α + γ * β := b
 example (γ : ℂ) : γ + 0 = γ := add_zero γ
 example (γ : ℂ) : γ * 1 = γ := mul_one γ
 
--- instance : Neg Complex := inferInstance
-
--- attribute [-instance] Complex.instField
--- attribute [-instance] Complex.instNeg
--- attribute [-instance] Complex.instSub
--- attribute [-instance] Complex.addCommGroup
--- attribute [-instance] Complex.instRing
-
-instance myFakeNeg : Neg Complex where
-  neg z := z
-
-@[avoiding neg_eq_of_add_eq_zero_left, neg_eq_of_add_eq_zero_right,
-    eq_neg_of_add_eq_zero_left, eq_neg_of_add_eq_zero_right]
+@[avoiding Complex.instNeg, Complex.instSub, Complex.commRing, Complex.instCommSemiring,
+    Complex.instField]
 theorem exercise_1A_5 (α : ℂ) : ∃! β : ℂ, α + β = 0 := by
-  -- need to ban `Neg Complex`
   use ⟨ -α.re, -α.im ⟩
   constructor
   · apply Complex.ext <;> simp
@@ -105,18 +96,70 @@ theorem exercise_1A_5 (α : ℂ) : ∃! β : ℂ, α + β = 0 := by
       simp at this
       grind
 
-attribute [-instance] myFakeNeg
+noncomputable abbrev my_inv (α : ℂ) : ℂ := (Complex.mk
+    (α.re / (α.re ^ 2 + α.im ^ 2))
+    (-α.im / (α.re ^ 2 + α.im ^ 2))
+  )
 
-@[avoiding inv_eq_of_mul_eq_one_left, inv_eq_of_mul_eq_one_right,
-    eq_inv_of_mul_eq_one_left, eq_inv_of_mul_eq_one_right]
+@[avoiding Complex.instInv, Complex.instDivInvMonoid, Complex.commRing, Complex.instCommSemiring,
+    Complex.instField]
+lemma mul_inv_cancel (α : ℂ) (hα : α ≠ 0) : α * (my_inv α) = 1 := by
+  nth_rewrite 1 [← Complex.eta α]
+  rw [Complex.mk_mul_mk]
+  apply Complex.ext
+  · field_simp
+    simp
+    intro h
+    have h1 : α.re = 0 := by nlinarith
+    have h2 : α.im = 0 := by nlinarith
+    apply hα
+    apply Complex.ext <;> norm_num <;> assumption
+  · field_simp
+    norm_num
+
+@[avoiding Complex.instInv, Complex.instDivInvMonoid, Complex.commRing, Complex.instCommSemiring,
+    Complex.instField]
+lemma inv_mul_cancel' (α : ℂ) (hα : α ≠ 0) : (my_inv α) * α = 1 := by
+  nth_rewrite 2 [← Complex.eta α]
+  rw [Complex.mk_mul_mk]
+  apply Complex.ext
+  · field_simp
+    simp
+    intro h
+    have h1 : α.re = 0 := by nlinarith
+    have h2 : α.im = 0 := by nlinarith
+    apply hα
+    apply Complex.ext <;> norm_num <;> assumption
+  · field_simp
+    norm_num
+
+@[avoiding Complex.instInv, Complex.instDivInvMonoid, Complex.commRing, Complex.instCommSemiring,
+    Complex.instField]
+lemma one_mul' (α : ℂ) : 1 * α = α := by
+  sorry
+
+@[avoiding Complex.instInv, Complex.instDivInvMonoid, Complex.commRing, Complex.instCommSemiring,
+    Complex.instField]
+lemma mul_assoc' (α β γ : ℂ) : (α * β) * γ = α * (β * γ) := by
+  rw [Complex.mk_mul_mk, Complex.mk_mul_mk, Complex.mk_mul_mk, Complex.mk_mul_mk]
+  grind
+
+@[avoiding Complex.instInv, Complex.instDivInvMonoid, Complex.commRing, Complex.instCommSemiring,
+    Complex.instField]
 theorem exercise_1A_6 (α : ℂ) (hα : α ≠ 0) : ∃! β : ℂ, α * β = 1 := by
-  use α⁻¹
+  use my_inv α
   constructor
   · dsimp
-    field_simp -- need to ban the instances
+    exact mul_inv_cancel α hα
   · intro y
     dsimp
-    grind
+    intro h
+    have h' := congr((my_inv α) * $h)
+    rw [← mul_assoc'] at h'
+    simp at h'
+    rw [inv_mul_cancel' α hα] at h'
+    rw [one_mul'] at h'
+    exact h'
 
 /-! 1.5 Definition: −α, subtraction, 1/α, division -/
 
