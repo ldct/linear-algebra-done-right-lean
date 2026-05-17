@@ -151,9 +151,8 @@ theorem exercise_1A_6 (α : ℂ) (hα : α ≠ 0) : ∃! β : ℂ, α * β = 1 :
   constructor
   · dsimp
     exact mul_inv_cancel α hα
-  · intro y
-    dsimp
-    intro h
+  · dsimp
+    intro y h
     have h' := congr((my_inv α) * $h)
     rw [← mul_assoc'] at h'
     simp at h'
