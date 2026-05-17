@@ -56,10 +56,8 @@ theorem exercise_1A_1 (α β : ℂ) : α + β = β + α := by
 @[avoiding Complex.commRing, Complex.instCommSemiring, Complex.instField]
 theorem mul_comm_example (α β : ℂ) : α * β = β * α := by
   apply Complex.ext
-  · simp only [Complex.mul_re, Complex.mul_re]
-    grind
-  · simp only [Complex.mul_im, Complex.mul_im]
-    grind
+  · simp only [Complex.mul_re]; ring
+  · simp only [Complex.mul_im]; ring
 
 @[avoiding add_assoc]
 theorem exercise_1A_2 (α β γ : ℂ) : (α + β) + γ = α + (β + γ) := by
