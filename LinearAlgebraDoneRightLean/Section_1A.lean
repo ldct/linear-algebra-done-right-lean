@@ -60,11 +60,7 @@ theorem mul_comm_example (α β : ℂ) : α * β = β * α := by
   · simp only [Complex.mul_im]; ring
 
 theorem exercise_1A_2' (α β γ : ℂ) : (α + β) + γ = α + (β + γ) := by
-  grind
-
-@[avoiding Complex.commRing, Complex.instCommSemiring, Complex.instField]
-theorem exercise_1A_2 (α β γ : ℂ) : (α + β) + γ = α + (β + γ) := by
-  exact exercise_1A_2' α β γ
+  apply Complex.ext <;> grind [add_re, add_im]
 
 @[avoiding Complex.commRing, Complex.instCommSemiring, Complex.instField]
 theorem exercise_1A_3 (α β γ : ℂ) : (α * β) * γ = α * (β * γ) := by
@@ -110,10 +106,8 @@ lemma mul_inv_cancel (α : ℂ) (hα : α ≠ 0) : α * (my_inv α) = 1 := by
   · field_simp
     simp
     intro h
-    have h1 : α.re = 0 := by nlinarith
-    have h2 : α.im = 0 := by nlinarith
     apply hα
-    apply Complex.ext <;> norm_num <;> assumption
+    apply Complex.ext <;> norm_num <;> nlinarith
   · field_simp
     norm_num
 
@@ -126,17 +120,16 @@ lemma inv_mul_cancel' (α : ℂ) (hα : α ≠ 0) : (my_inv α) * α = 1 := by
   · field_simp
     simp
     intro h
-    have h1 : α.re = 0 := by nlinarith
-    have h2 : α.im = 0 := by nlinarith
     apply hα
-    apply Complex.ext <;> norm_num <;> assumption
+    apply Complex.ext <;> norm_num <;> nlinarith
   · field_simp
     norm_num
 
 @[avoiding Complex.instInv, Complex.instDivInvMonoid, Complex.commRing, Complex.instCommSemiring,
     Complex.instField]
 lemma one_mul' (α : ℂ) : 1 * α = α := by
-  sorry
+  rw [show (1 : ℂ) = Complex.mk 1 0 by rfl, mk_mul_mk]
+  simp
 
 @[avoiding Complex.instInv, Complex.instDivInvMonoid, Complex.commRing, Complex.instCommSemiring,
     Complex.instField]
