@@ -45,19 +45,21 @@ example : (2 + 3 * I) * (4 + 5 * I) = -7 + 22 * I := by
 
 /-! 1.3 Properties of complex arithmetic -/
 
-@[avoiding add_comm]
+@[avoiding Complex.commRing, Complex.instCommSemiring, Complex.instField]
 theorem exercise_1A_1 (α β : ℂ) : α + β = β + α := by
   apply Complex.ext
-  <;> simp <;> ring
+  -- push Complex.re
+  <;> grind [add_re, add_im]
 
 /-! 1.4 Example: commutativity of complex multiplication -/
 
-@[avoiding mul_comm]
+@[avoiding Complex.commRing, Complex.instCommSemiring, Complex.instField]
 theorem mul_comm_example (α β : ℂ) : α * β = β * α := by
-  rw [← re_add_im α, ← re_add_im β]
   apply Complex.ext
-  · ring_nf
-  · ring_nf
+  · simp only [Complex.mul_re, Complex.mul_re]
+    grind
+  · simp only [Complex.mul_im, Complex.mul_im]
+    grind
 
 @[avoiding add_assoc]
 theorem exercise_1A_2 (α β γ : ℂ) : (α + β) + γ = α + (β + γ) := by
